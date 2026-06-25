@@ -26,6 +26,10 @@ import {
   VENEZUELA_STATES,
 } from '@/lib/data/types';
 import { APPROXIMATE_THRESHOLD_M } from '@/lib/geocoding/types';
+import {
+  detectInAppBrowser,
+  geolocationErrorMessage,
+} from '@/lib/geolocation/errors';
 import { statusMeta } from '@/lib/status';
 import { useRevokeObjectUrlsOnUnmount } from '@/lib/use-revoke-object-urls';
 
@@ -163,6 +167,7 @@ export default function ReportLocationForm(): React.JSX.Element {
       return;
     }
     setGeoError(null);
+    const inAppBrowser = detectInAppBrowser(navigator.userAgent);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
@@ -171,9 +176,12 @@ export default function ReportLocationForm(): React.JSX.Element {
         setAccuracyM(Math.round(pos.coords.accuracy));
         void reverseFill(lat, lng);
       },
-      () => {
-        setGeoError('No se pudo obtener tu ubicación. Verifica los permisos.');
+      (error) => {
+        setGeoError(geolocationErrorMessage(error, inAppBrowser));
       },
+      // iOS never resolves a hung lookup on its own, so cap the wait and let a
+      // slightly stale fix through rather than blocking the user.
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
     );
   }
 
