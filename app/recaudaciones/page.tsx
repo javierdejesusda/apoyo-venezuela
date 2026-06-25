@@ -9,6 +9,11 @@ import { PageHeader } from '@/components/page-header';
 import { getStore } from '@/lib/data/store';
 import type { Fundraiser } from '@/lib/data/types';
 
+// Igual que home y zona: se sirve dinamica para que los cambios hechos fuera de
+// la app (borrados directos en la base, reset de datos) se reflejen sin esperar
+// un redeploy. Sin esto la lista quedaba congelada con campanas ya eliminadas.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Recaudaciones',
 };
