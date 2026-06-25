@@ -110,7 +110,7 @@ export default async function ZonaPage({ params }: Props) {
               <PhoneCall className="h-4 w-4 text-brand-600" aria-hidden />
               {location.contactoNombre ?? location.contactoTelefono}
             </a>
-            <span className="pl-1 text-xs text-ink-faint">Click para llamar</span>
+            <span className="pl-1 text-xs text-ink-faint">Para llamar</span>
           </div>
         )}
 
