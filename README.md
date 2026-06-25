@@ -106,7 +106,14 @@ supabase db push
 
 Alternatively, paste the SQL into the SQL editor in the Supabase panel.
 
-Row Level Security allows **read, insert, and update** (this is an emergency tool with no login) and does **not** allow delete. Moderation is future work.
+Row Level Security allows **read, insert, and update** (this is an emergency tool with no login) and does **not** allow delete. Public delete stays closed on purpose so nobody can wipe another person's report.
+
+To remove an erroneous report, a maintainer runs the admin script (it uses the authenticated Supabase CLI, so it needs no service-role key). It deletes the location row, its needs cascade, and its Storage photos:
+
+```bash
+npm run delete-report -- --find "San Bernardino"   # find the report id
+npm run delete-report -- <location-uuid>            # preview, confirm, delete
+```
 
 ## Scripts
 
@@ -118,6 +125,7 @@ Row Level Security allows **read, insert, and update** (this is an emergency too
 | `npm run lint` | Run ESLint |
 | `npm run test` | Run the test suite (Vitest) |
 | `npm run typecheck` | Type-check with `tsc --noEmit` |
+| `npm run delete-report` | Admin: remove an erroneous report (row + needs + photos) via the Supabase CLI |
 
 ## Project structure
 
