@@ -1,92 +1,149 @@
+<div align="center">
+
 # Apoyo Venezuela
 
-Mapa colaborativo para coordinar la ayuda tras el terremoto del 24 de junio de 2026 en Venezuela (doble sismo de magnitudes aproximadas M7.1 y M7.5). Permite reportar zonas afectadas, publicar necesidades por ubicación, marcar el estado estructural y consultar teléfonos de emergencia verificados.
+**Coordinate earthquake relief in Venezuela: map affected zones, post needs, and find verified emergency numbers.**
 
-Sitio en producción: https://apoyovenezuela.com
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/javierdejesusda/ayuda-venezuela/actions/workflows/ci.yml/badge.svg)](https://github.com/javierdejesusda/ayuda-venezuela/actions/workflows/ci.yml)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-> Iniciativa ciudadana sin afiliación política. La información es aportada por la comunidad: verifica antes de actuar o compartir. Ante una emergencia que ponga en riesgo la vida, llama al 911.
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres_+_Realtime-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
 
-## Qué hace
+**Live site: [apoyovenezuela.com](https://apoyovenezuela.com)**
 
-- **Mapa interactivo** de zonas afectadas con un semáforo de estado estructural (derrumbe, dañado, estable, sin confirmar), siempre con color + icono + etiqueta.
-- **Reporte de zonas** con geolocalización o selección de punto en el mapa.
-- **Necesidades por zona** (rescate, agua, alimentos, medicinas, refugio, etc.) con ciclo de vida: se necesita -> en camino -> cubierto.
-- **Teléfonos de emergencia verificados** por estado, con tap-to-call y la fuente de cada número.
-- **Guía de ayuda**: qué donar y qué evitar, refugios y centros de acopio, organizaciones de ayuda.
-- **Enlace al proyecto hermano** de personas desaparecidas: https://desaparecidosterremotovenezuela.com
-- **Actualizaciones en vivo** (mapa y listas) vía Supabase Realtime.
-- PWA, modo claro/oscuro y diseño mobile-first.
+</div>
 
-## Stack
+> A citizen initiative with no political affiliation. Information is community-contributed, so verify before acting or sharing. In a life-threatening emergency, call 911.
 
-- [Next.js 16](https://nextjs.org/) (App Router) + React 19 + TypeScript estricto
-- Tailwind CSS v4 (tokens de diseño en `app/globals.css` vía `@theme`)
-- Mapa: Leaflet + react-leaflet con tiles de OpenStreetMap (sin API key)
-- Datos: Supabase (Postgres + Realtime); validación con Zod
-- Iconos: lucide-react
-- Pruebas: Vitest
+Apoyo Venezuela is a mobile-first, crowd-coordination web app created after the June 24, 2026 earthquake in Venezuela (a doublet of roughly M7.1 and M7.5). It lets people report affected zones, post needs per location, mark structural status, and consult verified emergency phone numbers.
 
-## Cómo correr en local
+## Table of contents
+
+- [About](#about)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [Connecting Supabase](#connecting-supabase)
+- [Database](#database)
+- [Scripts](#scripts)
+- [Project structure](#project-structure)
+- [Emergency data](#emergency-data)
+- [Contributing](#contributing)
+- [Code of conduct](#code-of-conduct)
+- [Security](#security)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
+## About
+
+What the app does:
+
+- **Interactive map of affected zones** with a structural-status traffic light (collapsed, damaged, stable, unconfirmed), always shown as color plus icon plus text label.
+- **Zone reporting** via geolocation or by picking a point on the map, including photo uploads restricted to safe raster image types.
+- **Needs per zone** (rescue, water, food, medicine, shelter, and more) with a lifecycle of needed, then on the way, then covered.
+- **Verified emergency phone directory** by state, with tap-to-call and the source of each number.
+- **Aid guide**: what to donate and what to avoid, shelters and collection centers, aid organizations.
+- **Link to the sister project** for missing persons: [desaparecidosterremotovenezuela.com](https://desaparecidosterremotovenezuela.com).
+- **Live updates** on the map and lists via Supabase Realtime.
+- **PWA**, light and dark mode, mobile-first.
+
+## Tech stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router) + React 19 + strict TypeScript.
+- **Styling**: Tailwind CSS v4 with design tokens defined in `app/globals.css` via `@theme`.
+- **Map**: Leaflet + react-leaflet using OpenStreetMap tiles (no API key).
+- **Data**: Supabase (Postgres + Realtime); validation with Zod.
+- **Icons**: lucide-react.
+- **Tests**: Vitest.
+
+## Getting started
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abre http://localhost:3000.
+Then open [http://localhost:3000](http://localhost:3000).
 
-Sin variables de entorno la app arranca en **modo demostración**: usa un almacén en memoria con datos de ejemplo de las zonas afectadas. Los datos no se comparten entre usuarios en este modo.
+**Demo mode**: with no environment variables, the app runs in demo mode using an in-memory store with sample data for the affected zones. Data is not shared between users in this mode, so it is ideal for trying the app locally without any backend.
 
-### Conectar Supabase (datos en vivo)
+## Connecting Supabase
 
-Define estas variables (por ejemplo en `.env.local` o en el panel de tu hosting):
+To use live, shared data, set both of these variables (for example in `.env.local` or in your hosting provider's panel):
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://<tu-proyecto>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<tu-anon-key>
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
 ```
 
-Cuando ambas existen, la app usa Supabase automáticamente en lugar del modo demo. La `anon key` es pública por diseño (se incluye en el bundle del navegador); no expongas nunca la `service_role` ni claves secretas.
+When both are set, the app uses Supabase automatically instead of demo mode.
 
-### Base de datos
+> The anon key is public by design (it ships in the browser bundle). Never expose the `service_role` key or any secret key.
 
-El esquema vive en `supabase/migrations/20260625000000_init.sql` (tablas `locations` y `needs`, índices, RLS y publicación de Realtime). Para aplicarlo:
+## Database
+
+The schema lives in the `supabase/migrations/` directory as a series of migration files: the tables `locations` and `needs`, indexes, RLS policies, the Realtime publication, and photo support.
+
+Apply the migrations with the Supabase CLI:
 
 ```bash
 supabase db push
 ```
 
-o pega el SQL en el editor del panel de Supabase.
+Alternatively, paste the SQL into the SQL editor in the Supabase panel.
 
-La política de RLS deja abiertas la **lectura, la inserción y la actualización** (herramienta de emergencia sin login) y **no permite borrado**. La moderación queda como mejora futura.
+Row Level Security allows **read, insert, and update** (this is an emergency tool with no login) and does **not** allow delete. Moderation is future work.
 
 ## Scripts
 
-| Script | Descripción |
+| Script | Description |
 | --- | --- |
-| `npm run dev` | Servidor de desarrollo |
-| `npm run build` | Build de producción |
-| `npm run start` | Servir el build |
-| `npm run lint` | ESLint |
-| `npm run test` | Pruebas (Vitest) |
-| `npm run typecheck` | Chequeo de tipos (tsc) |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Run the test suite (Vitest) |
+| `npm run typecheck` | Type-check with `tsc --noEmit` |
 
-## Estructura
+## Project structure
 
+```text
+app/            App Router routes (home, reportar, telefonos, guia, zona/[id]) plus PWA and SEO metadata
+components/     UI: map, forms, cards, navigation, and states
+components/ui/  Primitives: button, form, badge
+lib/data/       Data model, store (demo vs Supabase), selectors, seed, and contacts
+lib/status.ts   Visual traffic-light system: icons, labels, and tones
+supabase/       Schema migrations
+tests/          Pure-logic tests
 ```
-app/            Rutas (App Router): home, reportar, telefonos, guia, zona/[id], metadata PWA/SEO
-components/     UI (mapa, formularios, tarjetas, navegación, estados)
-components/ui/  Primitivas (button, form, badge)
-lib/data/       Modelo de datos, store (demo vs Supabase), selectores, seed, contactos
-lib/status.ts   Sistema visual (semáforo): iconos, etiquetas y tonos
-supabase/       Migración del esquema
-tests/          Pruebas de lógica pura
-```
 
-## Datos de emergencia
+## Emergency data
 
-Los teléfonos y recursos se recopilaron de fuentes públicas y se marcaron como verificados cuando al menos una fuente confiable los confirmó. Aun así, las líneas pueden saturarse o cambiar: **verifica el número antes de llamar**.
+Phone numbers and resources were collected from public sources and marked verified when confirmed by at least one credible source. Lines can be saturated or change, so **verify a number before calling**.
 
-## Contribuir
+## Contributing
 
-Las contribuciones son bienvenidas, en especial correcciones de datos (teléfonos, refugios, organizaciones) con su fuente. Mantén el estilo del proyecto: tokens de diseño, iconos de lucide, copy en español con acentos y sin colores partidistas.
+Contributions are welcome. Data corrections (phone numbers, shelters, organizations) are especially valuable, and each correction should include its source. See [CONTRIBUTING.md](CONTRIBUTING.md) for details, and please keep the project's conventions: design tokens, lucide icons, and strictly non-partisan content.
+
+## Code of conduct
+
+This project follows a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it.
+
+## Security
+
+Please report vulnerabilities responsibly. See [SECURITY.md](SECURITY.md) for how to disclose issues privately.
+
+## License
+
+Released under the [MIT License](LICENSE).
+
+## Acknowledgments
+
+- [OpenStreetMap](https://www.openstreetmap.org/) contributors for the map tiles.
+- [Supabase](https://supabase.com/) for Postgres and Realtime.
+- The Venezuelan volunteer community contributing data and time on the ground.
+- The sister project for missing persons: [desaparecidosterremotovenezuela.com](https://desaparecidosterremotovenezuela.com).

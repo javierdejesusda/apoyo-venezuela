@@ -1,0 +1,67 @@
+name: Data correction (emergency info)
+description: Correct a phone number, shelter, aid organization, or other emergency data shown in the app.
+title: "[Data]: "
+labels:
+  - data-correction
+  - "status: needs triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping keep this emergency data accurate. People rely on it during a real crisis, so accuracy matters.
+
+        Every change needs a credible public source. We cannot apply a correction based on memory or hearsay alone, even if you are sure it is right. Please include an official URL or a verifiable reference so a reviewer can confirm the change before it goes live.
+  - type: dropdown
+    id: data-type
+    attributes:
+      label: Type of data
+      description: What kind of information needs to be corrected?
+      options:
+        - Emergency phone number
+        - Shelter or collection center
+        - Aid organization
+        - Map zone info
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: State or location
+      description: The state or specific place this data refers to (for example, a city, parish, or zone name).
+      placeholder: "Example: Sucre"
+    validations:
+      required: true
+  - type: textarea
+    id: current-value
+    attributes:
+      label: Current (incorrect) value
+      description: What does the app currently show? Leave blank if this entry is missing entirely.
+      placeholder: "Example: Listed number 0212-000-0000 for the fire department."
+    validations:
+      required: false
+  - type: textarea
+    id: correct-value
+    attributes:
+      label: Correct value
+      description: What should it say instead? Be as specific and complete as possible.
+      placeholder: "Example: The correct fire department number is 0212-111-1111."
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: An official URL or a verifiable reference that confirms this correction. This is required for every change.
+      placeholder: "Example: https://official-source.example/contact, or the name of the agency and document where you found it."
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: The source is public and credible
+          required: true
+        - label: I verified this myself
+          required: true

@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Use the live app
+    url: https://apoyovenezuela.com
+    about: Report zones and needs directly in the app.
+  - name: Life-threatening emergency
+    url: https://apoyovenezuela.com
+    about: In a real emergency call 911 in Venezuela; do not use GitHub issues for emergencies.
+  - name: Missing persons (sister project)
+    url: https://desaparecidosterremotovenezuela.com
+    about: Report or search for missing persons.
+  - name: Report a security issue
+    url: https://github.com/javierdejesusda/ayuda-venezuela/security/advisories/new
+    about: Report vulnerabilities privately.

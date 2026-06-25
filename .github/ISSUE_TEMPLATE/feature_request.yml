@@ -1,0 +1,72 @@
+name: Feature request
+description: Suggest an idea or improvement for Apoyo Venezuela.
+title: "[Feature]: "
+labels:
+  - enhancement
+  - "status: needs triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Apoyo Venezuela.
+
+        This is a humanitarian, strictly non-partisan emergency-relief tool. Please focus your request on helping affected people during the emergency: reporting zones, coordinating needs, finding verified emergency phones, and reaching aid resources.
+
+        Before you start, please search existing issues so we can avoid duplicates and keep the discussion focused.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem does this solve? Explain how it helps people during the emergency (affected residents, volunteers, rescuers, or coordinators) and what is hard or missing today.
+      placeholder: During the emergency, people struggle to ... so they cannot ...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe what you would like to happen. Be as concrete as you can about the behavior, the flow, and where it fits in the app.
+      placeholder: I would like the app to ...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe any alternative solutions, workarounds, or existing features you considered and why they fall short.
+      placeholder: I also thought about ..., but ...
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the app does this request mainly affect?
+      options:
+        - Map
+        - Reporting
+        - Needs
+        - Emergency phones
+        - Aid guide
+        - Accessibility
+        - PWA or offline
+        - Other
+    validations:
+      required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context, mockups, screenshots, or links to public sources that help explain the request.
+      placeholder: Anything else that helps us understand the request.
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched existing issues and did not find a duplicate of this request.
+          required: true
+        - label: I understand contributions must stay non-partisan and focused on humanitarian emergency relief.
+          required: true

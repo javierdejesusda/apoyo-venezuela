@@ -1,0 +1,97 @@
+name: Bug report
+description: Report a problem so we can keep Apoyo Venezuela reliable during the emergency.
+title: "[Bug]: "
+labels:
+  - bug
+  - "status: needs triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Apoyo Venezuela, a public, non-partisan emergency-relief tool.
+
+        Please keep this report respectful and free of political content.
+
+        Do NOT report security vulnerabilities here. If you found a security issue, follow the process in SECURITY.md instead so it can be handled privately.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Describe the bug clearly. What did you see go wrong?
+      placeholder: When I opened the map, the affected zones did not load and the screen stayed empty.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead?
+      placeholder: The map should display the affected zones with their structural-status markers.
+    validations:
+      required: false
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: List the exact steps so we can reproduce the problem.
+      placeholder: |
+        1. Go to the home page.
+        2. Wait for the map to load.
+        3. Observe that no zones appear.
+    validations:
+      required: true
+  - type: input
+    id: page-url
+    attributes:
+      label: URL or page where it happened
+      description: Paste the URL or name the page (for example, home, reportar, telefonos, guia, or a zone page).
+      placeholder: https://apoyovenezuela.com/reportar
+    validations:
+      required: false
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      description: What kind of device were you using?
+      options:
+        - Mobile
+        - Desktop
+        - Tablet
+    validations:
+      required: false
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      description: Which browser and version were you using?
+      placeholder: Chrome 126, Safari 17, Firefox 127
+    validations:
+      required: false
+  - type: dropdown
+    id: app-mode
+    attributes:
+      label: App mode
+      description: How was the app running when the bug occurred?
+      options:
+        - Demo mode
+        - Connected to Supabase
+        - Not sure
+    validations:
+      required: false
+  - type: textarea
+    id: console-errors
+    attributes:
+      label: Console errors or screenshots
+      description: Paste any browser console errors and attach screenshots if you have them.
+      placeholder: Drag and drop screenshots here, or paste console output.
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: This is not a security vulnerability. I understand security issues must follow SECURITY.md.
+          required: true
