@@ -102,13 +102,16 @@ export default async function ZonaPage({ params }: Props) {
         </div>
 
         {location.contactoTelefono && (
-          <a
-            href={telHref(location.contactoTelefono)}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-border-strong bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
-          >
-            <PhoneCall className="h-4 w-4 text-brand-600" aria-hidden />
-            {location.contactoNombre ?? location.contactoTelefono}
-          </a>
+          <div className="flex flex-col items-start gap-1">
+            <a
+              href={telHref(location.contactoTelefono)}
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-border-strong bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
+            >
+              <PhoneCall className="h-4 w-4 text-brand-600" aria-hidden />
+              {location.contactoNombre ?? location.contactoTelefono}
+            </a>
+            <span className="pl-1 text-xs text-ink-faint">Click para llamar</span>
+          </div>
         )}
 
         {location.descripcion && (
