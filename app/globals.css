@@ -1,26 +1,125 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Apoyo Venezuela design tokens.
+ * Fonts (--font-bricolage / --font-ibm-plex) are injected by next/font in
+ * app/layout.tsx. The status palette (danger/warning/success) is fixed so the
+ * emergency "semaphore" reads identically in light and dark mode; surface and
+ * ink tokens flip with the color scheme.
+ */
+@theme {
+  --font-sans: var(--font-ibm-plex), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-ibm-plex), ui-sans-serif, sans-serif;
+
+  /* Civic brand blue - deliberately outside the red/amber/green status range. */
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dce7ff;
+  --color-brand-200: #bcd0ff;
+  --color-brand-300: #8fb0ff;
+  --color-brand-400: #5d86fb;
+  --color-brand-500: #3a63f2;
+  --color-brand-600: #1f47df;
+  --color-brand-700: #1a39bd;
+  --color-brand-800: #1b3299;
+  --color-brand-900: #1c2f79;
+
+  /* Emergency semaphore. */
+  --color-danger: #e5484d;
+  --color-warning: #e8930c;
+  --color-success: #2e9e5b;
+  --color-info: #2f72e8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --canvas: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --ink: #14171c;
+  --ink-soft: #4b5160;
+  --ink-faint: #868d9b;
+  --border: #e3e6ec;
+  --border-strong: #cfd4dd;
+  --ring: #1f47df;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --canvas: #0c0e12;
+    --surface: #15181e;
+    --surface-2: #1d212a;
+    --ink: #eef0f4;
+    --ink-soft: #a9b0bd;
+    --ink-faint: #79808d;
+    --border: #262b34;
+    --border-strong: #353b46;
+    --ring: #5d86fb;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Leaflet fills its container and sits beneath the app chrome. */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: var(--color-surface-2);
+  font: inherit;
+  z-index: 0;
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+.leaflet-bar a {
+  color: var(--color-ink);
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fade-up {
+  animation: fade-up 0.4s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
