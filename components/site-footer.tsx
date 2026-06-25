@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ExternalLink, TriangleAlert } from 'lucide-react';
 
 import { BrandMark } from '@/components/ui/brand-mark';
+import { OpenSourceCallout } from '@/components/open-source-callout';
 import { DESAPARECIDOS_URL } from '@/lib/constants';
 
 /** Footer with navigation, the missing-persons site, and a non-partisan notice. */
@@ -52,6 +53,8 @@ export function SiteFooter() {
             Ante una emergencia que ponga en riesgo la vida, llama al 911.
           </p>
         </div>
+
+        <OpenSourceCallout />
 
         <p className="text-xs text-ink-faint">Hecho con solidaridad para Venezuela.</p>
       </div>
