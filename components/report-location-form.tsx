@@ -547,7 +547,7 @@ export default function ReportLocationForm(): React.JSX.Element {
                 <img
                   src={foto.previewUrl}
                   alt={`Foto adjunta ${index + 1}`}
-                  className="img-outline aspect-square w-full rounded-lg object-cover"
+                  className="img-outline aspect-square w-full rounded-lg bg-surface-2 object-contain"
                 />
                 <button
                   type="button"
