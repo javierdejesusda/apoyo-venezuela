@@ -1,5 +1,6 @@
 import {
   BadgeCheck,
+  BookOpen,
   Building,
   CheckCircle,
   ExternalLink,
@@ -240,6 +241,7 @@ export default function GuiaPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-12 py-6">
       <PageHeader
+        icon={BookOpen}
         eyebrow="Guía"
         title="Cómo ayudar, sin estorbar"
         description="Datos del sismo, qué donar y qué evitar, refugios, organizaciones verificadas y personas desaparecidas."

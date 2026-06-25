@@ -1,31 +1,28 @@
 import { type ReactNode } from 'react';
 
+import { type LucideIcon } from 'lucide-react';
+
 interface PageHeaderProps {
   eyebrow?: string;
+  /** Optional lucide icon shown inside the section-label chip. */
+  icon?: LucideIcon;
   title: string;
   description?: string;
   children?: ReactNode;
 }
 
 /**
- * Shared editorial masthead: a ticked eyebrow over a display-scale title. Gives
- * every secondary page the same authoritative voice as the home situation board.
+ * Shared editorial masthead: a contained section-label chip (icon + eyebrow)
+ * over a display-scale title. The chip uses the civic brand accent rather than
+ * the emergency semaphore, so a static page label never reads as a live alert.
  */
-export function PageHeader({ eyebrow, title, description, children }: PageHeaderProps) {
+export function PageHeader({ eyebrow, icon: Icon, title, description, children }: PageHeaderProps) {
   return (
-    <header className="relative space-y-3">
-      {/* Top edge: a thin semaphore signal line, matching the home situation board. */}
-      <span
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-danger via-warning to-brand-400 opacity-70"
-      />
+    <header className="space-y-3">
       {eyebrow && (
-        <p className="eyebrow flex items-center gap-2.5 text-ink-faint">
-          <span className="relative flex h-2 w-2 items-center justify-center" aria-hidden>
-            <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-danger" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-danger" />
-          </span>
-          {eyebrow}
+        <p className="inline-flex items-center gap-1.5 rounded-full border border-brand-500/20 bg-brand-50 py-1 pl-2 pr-2.5 text-tone-brand-text dark:border-brand-400/25 dark:bg-brand-500/10">
+          {Icon && <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />}
+          <span className="eyebrow">{eyebrow}</span>
         </p>
       )}
       <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{title}</h1>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { Info } from 'lucide-react';
+import { BadgeCheck, Info } from 'lucide-react';
 
 import { nationalNumbers } from '@/lib/data/resources';
 import { stateContacts } from '@/lib/data/emergency-contacts';
@@ -17,6 +17,7 @@ export default function TelefonosPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-10 py-8">
       <PageHeader
+        icon={BadgeCheck}
         eyebrow="Directorio verificado"
         title="Teléfonos de emergencia"
       >
