@@ -26,11 +26,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Lint runs in advisory mode: it surfaces findings without blocking the
-      # pipeline while pre-existing lint issues are addressed separately.
-      - name: Lint (advisory)
+      - name: Lint
         run: npm run lint
-        continue-on-error: true
 
       - name: Type check
         run: npm run typecheck
