@@ -126,40 +126,41 @@ export function createSupabaseStore(url: string, key: string): DataStore {
     auth: { persistSession: false },
   });
 
-  async function fetchNeeds(locationIds?: string[]): Promise<NeedRecord[]> {
-    let query = client.from('needs').select('*').order('created_at', { ascending: false });
-    if (locationIds) query = query.in('location_id', locationIds);
-    const { data, error } = await query;
-    if (error) throw error;
-    return (data as NeedRow[]).map(toNeed);
+  type LocationWithNeedsRow = LocationRow & { needs?: NeedRow[] | null };
+
+  // Compose a location row plus its embedded needs into the domain model,
+  // ordering needs newest-first to match the previous standalone query.
+  function composeLocation(row: LocationWithNeedsRow) {
+    const needs = (row.needs ?? [])
+      .map((need) => toNeed({ ...need, location_id: row.id }))
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+    return withSummary(toLocation(row), needs);
   }
 
   return {
     isDemo: false,
 
     async listLocations(filters?: LocationFilters) {
+      // Embed each location's needs in a single round-trip rather than scanning
+      // the entire needs table separately, which does not scale under load.
       const { data, error } = await client
         .from('locations')
-        .select('*')
+        .select('*, needs(*)')
         .order('updated_at', { ascending: false });
       if (error) throw error;
-      const locations = (data as LocationRow[]).map(toLocation);
-      const needs = await fetchNeeds();
-      const composed = locations.map((l) => withSummary(l, needs));
+      const composed = ((data as LocationWithNeedsRow[] | null) ?? []).map(composeLocation);
       return sortLocations(applyFilters(composed, filters));
     },
 
     async getLocation(id: string) {
       const { data, error } = await client
         .from('locations')
-        .select('*')
+        .select('*, needs(*)')
         .eq('id', id)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
-      const location = toLocation(data as LocationRow);
-      const needs = await fetchNeeds([id]);
-      return withSummary(location, needs);
+      return composeLocation(data as LocationWithNeedsRow);
     },
 
     async createLocation(input: CreateLocationInput) {
@@ -198,17 +199,20 @@ export function createSupabaseStore(url: string, key: string): DataStore {
     },
 
     async updateLocationStatus(id: string, status: EmergencyStatus) {
-      const { data, error } = await client
-        .from('locations')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select('*')
-        .maybeSingle();
+      // Anon clients can no longer UPDATE arbitrary columns: a SECURITY DEFINER
+      // function validates the status and is the only update path RLS allows.
+      const { data, error } = await client.rpc('set_location_status', {
+        loc_id: id,
+        new_status: status,
+      });
       if (error) throw error;
-      return data ? toLocation(data as LocationRow) : null;
+      const row = (Array.isArray(data) ? data[0] : data) as LocationRow | null;
+      return row ? toLocation(row) : null;
     },
 
     async createNeed(input: CreateNeedInput) {
+      // A trigger bumps the parent location's updated_at, so no second write is
+      // needed here (and anon can no longer UPDATE locations directly anyway).
       const { data, error } = await client
         .from('needs')
         .insert({
@@ -222,22 +226,17 @@ export function createSupabaseStore(url: string, key: string): DataStore {
         .select('*')
         .single();
       if (error) throw error;
-      await client
-        .from('locations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', input.locationId);
       return toNeed(data as NeedRow);
     },
 
     async updateNeedStatus(id: string, status: NeedStatus) {
-      const { data, error } = await client
-        .from('needs')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select('*')
-        .maybeSingle();
+      const { data, error } = await client.rpc('set_need_status', {
+        need_id: id,
+        new_status: status,
+      });
       if (error) throw error;
-      return data ? toNeed(data as NeedRow) : null;
+      const row = (Array.isArray(data) ? data[0] : data) as NeedRow | null;
+      return row ? toNeed(row) : null;
     },
 
     async listFundraisers() {
