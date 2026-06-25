@@ -7,10 +7,11 @@ import { Image as ImageIcon, LocateFixed } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 
+import { useTheme } from '@/components/theme-provider';
 import type { LocationWithNeeds } from '@/lib/data/types';
 import { EMERGENCY_STATUSES } from '@/lib/data/types';
 import { statusMeta, TONE_HEX } from '@/lib/status';
-import { usePrefersDark, usePrefersReducedMotion } from '@/lib/use-prefers-dark';
+import { usePrefersReducedMotion } from '@/lib/use-prefers-dark';
 
 // Cap on how many derrumbe pins may pulse so battery / GPU stays bounded.
 const MAX_PULSING = 5;
@@ -208,7 +209,8 @@ export default function MapView({
 }: MapViewProps): React.JSX.Element {
   const markerRefs = useRef<Map<string, L.Marker>>(new Map());
   const valid = useMemo(() => validLocations(locations), [locations]);
-  const isDark = usePrefersDark();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const reducedMotion = usePrefersReducedMotion();
   // Muted CARTO basemap reads as an instrument and lets the semaphore pins pop.
   const tileUrl = isDark

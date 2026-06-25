@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { EmergencyCallButton } from '@/components/emergency-call-button';
 import { HeaderNav } from '@/components/header-nav';
 import { MissingPersonsLink } from '@/components/missing-persons-link';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Sticky top bar: brand, primary nav (desktop), missing-persons link, 911. */
@@ -22,8 +23,9 @@ export function SiteHeader() {
 
         <HeaderNav />
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1.5">
           <MissingPersonsLink variant="inline" className="hidden lg:inline-flex" />
+          <ThemeToggle />
           <EmergencyCallButton className="px-3.5 text-xs" />
         </div>
       </div>

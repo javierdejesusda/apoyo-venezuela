@@ -8,8 +8,10 @@ import { DemoBanner } from '@/components/demo-banner';
 import { RealtimeRefresher } from '@/components/realtime-refresher';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
+import { ThemeProvider } from '@/components/theme-provider';
 import { SITE_URL } from '@/lib/constants';
 import { isDemoMode } from '@/lib/data/store';
+import { themeInitScript } from '@/lib/theme';
 
 const display = Bricolage_Grotesque({
   subsets: ['latin'],
@@ -80,14 +82,25 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${display.variable} ${sans.variable} h-full`}>
+    <html
+      lang="es"
+      data-theme="light"
+      suppressHydrationWarning
+      className={`${display.variable} ${sans.variable} h-full`}
+    >
+      <head>
+        {/* Apply the persisted theme before first paint to avoid a flash. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
+      </head>
       <body className="flex min-h-full flex-col bg-canvas text-ink antialiased">
-        <DemoBanner show={isDemoMode()} />
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-4 md:pb-12">{children}</main>
-        <SiteFooter />
-        <BottomNav />
-        <RealtimeRefresher />
+        <ThemeProvider>
+          <DemoBanner show={isDemoMode()} />
+          <SiteHeader />
+          <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-4 md:pb-12">{children}</main>
+          <SiteFooter />
+          <BottomNav />
+          <RealtimeRefresher />
+        </ThemeProvider>
       </body>
     </html>
   );

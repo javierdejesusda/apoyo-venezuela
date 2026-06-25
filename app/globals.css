@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
 /*
+ * Manual dark mode: the `dark:` variant and all dark tokens key off a
+ * `data-theme="dark"` attribute on <html> (set by the no-flash script and the
+ * ThemeProvider), never off the OS `prefers-color-scheme`. Default is light.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
  * Apoyo Venezuela design tokens.
  * Fonts (--font-bricolage / --font-ibm-plex) are injected by next/font in
  * app/layout.tsx. The status palette (danger/warning/success) is fixed so the
@@ -37,6 +44,7 @@
 }
 
 :root {
+  color-scheme: light;
   /* Cool "architectural concrete" neutrals - reads as an instrument, not default gray. */
   --canvas: #f1f4f8;
   --surface: #ffffff;
@@ -69,25 +77,24 @@
   --hero-line: rgba(255, 255, 255, 0.06);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --canvas: #0a0c11;
-    --surface: #141821;
-    --surface-2: #1c2230;
-    --surface-3: #252d3d;
-    --ink: #eef1f6;
-    --ink-soft: #abb3c2;
-    --ink-faint: #79808d;
-    --border: #242b38;
-    --border-strong: #353e4e;
-    --ring: #5d86fb;
+[data-theme='dark'] {
+  color-scheme: dark;
+  --canvas: #0a0c11;
+  --surface: #141821;
+  --surface-2: #1c2230;
+  --surface-3: #252d3d;
+  --ink: #eef1f6;
+  --ink-soft: #abb3c2;
+  --ink-faint: #79808d;
+  --border: #242b38;
+  --border-strong: #353e4e;
+  --ring: #5d86fb;
 
-    /* On dark soft tints the base hexes go too low; lighten the badge text. */
-    --tone-warning-text: #f0a93a;
-    --tone-success-text: #54c08a;
-    --tone-danger-text: #ff8a8e;
-    --tone-brand-text: #8fb0ff;
-  }
+  /* On dark soft tints the base hexes go too low; lighten the badge text. */
+  --tone-warning-text: #f0a93a;
+  --tone-success-text: #54c08a;
+  --tone-danger-text: #ff8a8e;
+  --tone-brand-text: #8fb0ff;
 }
 
 @theme inline {
@@ -111,6 +118,7 @@
   --color-hero-ink-soft: var(--hero-ink-soft);
   --color-hero-ink-faint: var(--hero-ink-faint);
   --color-hero-border: var(--hero-border);
+  --color-hero-line: var(--hero-line);
 }
 
 @layer base {
@@ -223,10 +231,8 @@
   outline: 1px solid rgba(0, 0, 0, 0.1);
   outline-offset: -1px;
 }
-@media (prefers-color-scheme: dark) {
-  .img-outline {
-    outline-color: rgba(255, 255, 255, 0.1);
-  }
+[data-theme='dark'] .img-outline {
+  outline-color: rgba(255, 255, 255, 0.1);
 }
 
 @media (prefers-reduced-motion: reduce) {

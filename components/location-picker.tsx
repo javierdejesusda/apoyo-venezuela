@@ -6,8 +6,8 @@ import L from 'leaflet';
 import React, { useRef } from 'react';
 import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
 
+import { useTheme } from '@/components/theme-provider';
 import { TONE_HEX } from '@/lib/status';
-import { usePrefersDark } from '@/lib/use-prefers-dark';
 import { cn } from '@/lib/utils';
 
 export interface LocationPickerProps {
@@ -67,7 +67,8 @@ export default function LocationPicker({
   className,
 }: LocationPickerProps): React.JSX.Element {
   const hasCoords = value.lat !== null && value.lng !== null;
-  const isDark = usePrefersDark();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   // Match the muted CARTO basemap used on the home map for theme parity.
   const tileUrl = isDark
     ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
