@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css';
 
 import L from 'leaflet';
-import React, { useRef } from 'react';
+import React, { useMemo } from 'react';
 import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
 
 import { TONE_HEX } from '@/lib/status';
@@ -57,8 +57,8 @@ interface SelectedMarkerProps {
 }
 
 function SelectedMarker({ lat, lng }: SelectedMarkerProps): React.JSX.Element {
-  const iconRef = useRef<L.DivIcon>(buildPickerIcon());
-  return <Marker position={[lat, lng]} icon={iconRef.current} />;
+  const icon = useMemo(() => buildPickerIcon(), []);
+  return <Marker position={[lat, lng]} icon={icon} />;
 }
 
 export default function LocationPicker({
