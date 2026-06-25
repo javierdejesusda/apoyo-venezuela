@@ -10,6 +10,7 @@ import type {
   NeedRecord,
   NeedSummary,
 } from './types';
+import { VENEZUELA_STATES } from './types';
 
 export function buildSummary(needs: NeedRecord[]): NeedSummary {
   let pendientes = 0;
@@ -103,4 +104,17 @@ export function globalStats(locations: LocationWithNeeds[]): GlobalStats {
     urgentes,
     necesidadesAbiertas,
   };
+}
+
+/**
+ * Returns the sorted (es locale) de-duplicated union of all canonical Venezuelan
+ * states and every `loc.estado` found in the provided locations. Off-list values
+ * from stored data are included defensively, then the whole set is sorted.
+ */
+export function availableStateOptions(locations: { estado: string }[]): string[] {
+  const seen = new Set<string>(VENEZUELA_STATES);
+  for (const loc of locations) {
+    seen.add(loc.estado);
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b, 'es'));
 }
