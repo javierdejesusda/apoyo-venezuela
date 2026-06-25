@@ -27,6 +27,8 @@ interface LocationRow {
   zona: string | null;
   lat: number | null;
   lng: number | null;
+  // Optional so older row fixtures (pre-migration) still satisfy this type.
+  accuracy_m?: number | null;
   status: string;
   descripcion: string | null;
   contacto_nombre: string | null;
@@ -57,6 +59,7 @@ export function toLocation(r: LocationRow): LocationRecord {
     zona: r.zona ?? undefined,
     lat: r.lat,
     lng: r.lng,
+    accuracyM: r.accuracy_m ?? null,
     status: r.status as EmergencyStatus,
     descripcion: r.descripcion ?? undefined,
     contactoNombre: r.contacto_nombre ?? undefined,
@@ -132,6 +135,7 @@ export function createSupabaseStore(url: string, key: string): DataStore {
           zona: input.zona ?? null,
           lat: input.lat ?? null,
           lng: input.lng ?? null,
+          accuracy_m: input.accuracyM ?? null,
           status: input.status,
           descripcion: input.descripcion ?? null,
           contacto_nombre: input.contactoNombre ?? null,

@@ -79,4 +79,31 @@ describe('memory store', () => {
     const store = createMemoryStore({ locations: [], needs: [] });
     expect(await store.getLocation('nope')).toBeNull();
   });
+
+  it('round-trips accuracyM on a created location', async () => {
+    const store = createMemoryStore({ locations: [], needs: [] });
+    const created = await store.createLocation({
+      nombre: 'Zona con radio',
+      estado: 'Miranda',
+      ciudad: 'Los Teques',
+      status: 'danado',
+      lat: 10.3,
+      lng: -67.0,
+      accuracyM: 200,
+    });
+    expect(created.accuracyM).toBe(200);
+    const detail = await store.getLocation(created.id);
+    expect(detail?.accuracyM).toBe(200);
+  });
+
+  it('defaults accuracyM to null when not provided', async () => {
+    const store = createMemoryStore({ locations: [], needs: [] });
+    const created = await store.createLocation({
+      nombre: 'Zona sin radio',
+      estado: 'Lara',
+      ciudad: 'Barquisimeto',
+      status: 'estable',
+    });
+    expect(created.accuracyM).toBeNull();
+  });
 });

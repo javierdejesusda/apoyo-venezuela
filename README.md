@@ -43,7 +43,7 @@ Apoyo Venezuela is a mobile-first, crowd-coordination web app created after the 
 What the app does:
 
 - **Interactive map of affected zones** with a structural-status traffic light (collapsed, damaged, stable, unconfirmed), always shown as color plus icon plus text label.
-- **Zone reporting** via geolocation or by picking a point on the map, including photo uploads restricted to safe raster image types.
+- **Zone reporting** with address autocomplete, reverse geocoding, geolocation, or by dragging a pin on the map, including photo uploads restricted to safe raster image types.
 - **Needs per zone** (rescue, water, food, medicine, shelter, and more) with a lifecycle of needed, then on the way, then covered.
 - **Verified emergency phone directory** by state, with tap-to-call and the source of each number.
 - **Aid guide**: what to donate and what to avoid, shelters and collection centers, aid organizations.
@@ -55,7 +55,7 @@ What the app does:
 
 - **Framework**: [Next.js 16](https://nextjs.org/) (App Router) + React 19 + strict TypeScript.
 - **Styling**: Tailwind CSS v4 with design tokens defined in `app/globals.css` via `@theme`.
-- **Map**: Leaflet + react-leaflet using OpenStreetMap tiles (no API key).
+- **Map**: Leaflet + react-leaflet using OpenStreetMap tiles (no API key). Address autocomplete and reverse geocoding use the Mapbox Geocoding API (optional; see below).
 - **Data**: Supabase (Postgres + Realtime); validation with Zod.
 - **Icons**: lucide-react.
 - **Tests**: Vitest.
@@ -83,6 +83,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
 When both are set, the app uses Supabase automatically instead of demo mode.
 
 > The anon key is public by design (it ships in the browser bundle). Never expose the `service_role` key or any secret key.
+
+## Address autocomplete (Mapbox)
+
+The report form can autocomplete addresses and reverse-geocode a dropped pin using the Mapbox Geocoding API. Set a Mapbox access token to enable it (for example in `.env.local`):
+
+```bash
+MAPBOX_TOKEN=pk.your-mapbox-token
+```
+
+The token is read only on the server (it is not prefixed with `NEXT_PUBLIC_`, so it never ships in the browser bundle), and requests are biased to Venezuela. Restrict the token by URL in the Mapbox dashboard. Without a token the form still works: autocomplete returns no suggestions and the user places the pin manually, falling back to the per-state approximate location.
 
 ## Database
 

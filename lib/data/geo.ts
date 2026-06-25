@@ -4,6 +4,13 @@
  * Used by the map view to place approximate pins for zones that were reported
  * without explicit lat/lng coordinates.
  */
+import { APPROXIMATE_THRESHOLD_M } from '@/lib/geocoding/types';
+
+/**
+ * Uncertainty radius in meters assigned when a zone has no coordinates and we
+ * fall back to its state centroid. Wide on purpose: it covers most of a state.
+ */
+export const STATE_FALLBACK_RADIUS_M = 60000;
 
 /** Centroid (state capital) coordinates for each Venezuelan federal entity. */
 export const STATE_CENTROIDS: Record<string, { lat: number; lng: number }> = {
@@ -43,23 +50,43 @@ export function stateCentroid(
 }
 
 /**
- * Resolves the best available map coordinates for a location.
+ * Resolves the best available map coordinates for a location, plus the
+ * uncertainty radius the map should draw around them.
  *
- * - If exact lat/lng are present, returns them with approximate=false.
- * - If either is null, falls back to the estado centroid with approximate=true.
- * - If neither exact coords nor a known estado centroid exist, returns null.
+ * - With lat/lng present: returns them; approximate is true only when the saved
+ *   accuracyM meets APPROXIMATE_THRESHOLD_M. accuracyM defaults to 0 (exact).
+ * - With either coordinate null: falls back to the estado centroid, approximate,
+ *   with accuracyM = STATE_FALLBACK_RADIUS_M.
+ * - With no coords and an unknown estado: returns null.
  */
 export function resolveMapCoords(loc: {
   lat: number | null;
   lng: number | null;
   estado: string;
-}): { lat: number; lng: number; approximate: boolean } | null {
+  accuracyM?: number | null;
+}): {
+  lat: number;
+  lng: number;
+  approximate: boolean;
+  accuracyM: number;
+} | null {
   if (loc.lat !== null && loc.lng !== null) {
-    return { lat: loc.lat, lng: loc.lng, approximate: false };
+    const approximate =
+      loc.accuracyM != null && loc.accuracyM >= APPROXIMATE_THRESHOLD_M;
+    return {
+      lat: loc.lat,
+      lng: loc.lng,
+      approximate,
+      accuracyM: loc.accuracyM ?? 0,
+    };
   }
   const centroid = stateCentroid(loc.estado);
   if (centroid !== null) {
-    return { ...centroid, approximate: true };
+    return {
+      ...centroid,
+      approximate: true,
+      accuracyM: STATE_FALLBACK_RADIUS_M,
+    };
   }
   return null;
 }

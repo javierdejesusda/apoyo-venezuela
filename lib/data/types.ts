@@ -82,6 +82,8 @@ export interface LocationRecord {
   zona?: string;
   lat: number | null;
   lng: number | null;
+  /** Saved coordinate uncertainty radius in meters; null means exact. */
+  accuracyM?: number | null;
   status: EmergencyStatus;
   descripcion?: string;
   contactoNombre?: string;
@@ -126,6 +128,7 @@ export interface CreateLocationInput {
   zona?: string;
   lat?: number | null;
   lng?: number | null;
+  accuracyM?: number | null;
   status: EmergencyStatus;
   descripcion?: string;
   contactoNombre?: string;

@@ -61,6 +61,7 @@ export function createMemoryStore(initial?: MemorySeed): DataStore {
         zona: input.zona,
         lat: input.lat ?? null,
         lng: input.lng ?? null,
+        accuracyM: input.accuracyM ?? null,
         status: input.status,
         descripcion: input.descripcion,
         contactoNombre: input.contactoNombre,

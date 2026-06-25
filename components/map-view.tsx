@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Image as ImageIcon, LocateFixed } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 
 import { useTheme } from '@/components/theme-provider';
 import { resolveMapCoords } from '@/lib/data/geo';
@@ -63,15 +63,27 @@ interface ResolvedPoint {
   lat: number;
   lng: number;
   approximate: boolean;
+  accuracyM: number;
 }
 
 /** Resolves placeable coordinates for each location, including estado fallback. */
 function resolvePoints(locations: LocationWithNeeds[]): ResolvedPoint[] {
   const points: ResolvedPoint[] = [];
   for (const loc of locations) {
-    const resolved = resolveMapCoords({ lat: loc.lat, lng: loc.lng, estado: loc.estado });
+    const resolved = resolveMapCoords({
+      lat: loc.lat,
+      lng: loc.lng,
+      estado: loc.estado,
+      accuracyM: loc.accuracyM,
+    });
     if (resolved !== null) {
-      points.push({ loc, lat: resolved.lat, lng: resolved.lng, approximate: resolved.approximate });
+      points.push({
+        loc,
+        lat: resolved.lat,
+        lng: resolved.lng,
+        approximate: resolved.approximate,
+        accuracyM: resolved.accuracyM,
+      });
     }
   }
   return points;
@@ -286,12 +298,34 @@ export default function MapView({
 
         <Legend />
 
+        {valid.map(({ loc, lat, lng, approximate, accuracyM }) => {
+          if (!approximate || accuracyM <= 0) return null;
+          const hex = TONE_HEX[statusMeta[loc.status].tone];
+          return (
+            <Circle
+              key={`area-${loc.id}`}
+              center={[lat, lng]}
+              radius={accuracyM}
+              pathOptions={{
+                color: hex,
+                weight: 1,
+                opacity: 0.5,
+                fillColor: hex,
+                fillOpacity: 0.08,
+                dashArray: '4 4',
+              }}
+            />
+          );
+        })}
+
         {valid.map(({ loc, lat, lng, approximate }) => {
           const meta = statusMeta[loc.status];
           const hex = TONE_HEX[meta.tone];
           // Built from the same `valid` array in this render, so always present.
           const icon = iconCache.get(loc.id) as L.DivIcon;
           const fotoCount = loc.fotos?.length ?? 0;
+          // No saved coords means we placed the pin on the state centroid.
+          const fromCentroid = loc.lat === null || loc.lng === null;
 
           return (
             <Marker
@@ -347,7 +381,9 @@ export default function MapView({
 
                   {approximate && (
                     <p className="text-ink-faint text-xs mb-1.5">
-                      Ubicación aproximada por estado
+                      {fromCentroid
+                        ? 'Ubicación aproximada por estado'
+                        : 'Ubicación aproximada (área)'}
                     </p>
                   )}
 

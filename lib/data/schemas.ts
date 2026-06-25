@@ -50,6 +50,7 @@ export const createLocationSchema = z.object({
   zona: optionalText(120),
   lat: z.number().min(-90).max(90).nullable().optional(),
   lng: z.number().min(-180).max(180).nullable().optional(),
+  accuracyM: z.number().nonnegative().nullable().optional(),
   status: emergencyStatusSchema,
   descripcion: optionalText(1000),
   contactoNombre: optionalText(80),
