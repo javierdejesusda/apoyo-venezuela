@@ -9,6 +9,7 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     include: ['tests/**/*.test.{ts,tsx}'],
+    setupFiles: ['./tests/setup/jest-dom.ts'],
   },
   resolve: {
     alias: {
