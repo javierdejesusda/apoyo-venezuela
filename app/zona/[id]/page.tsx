@@ -10,7 +10,7 @@ import { formatRelativeTime, telHref } from '@/lib/utils';
 import { StatusBadge } from '@/components/status-badges';
 import { AddNeedForm } from '@/components/add-need-form';
 import { NeedList } from '@/components/need-list';
-import { ZonePhoto } from '@/components/zone-photo';
+import { ZonePhotoGallery } from '@/components/zone-photo-gallery';
 
 // ISR with 30-second revalidation. In-app writes call revalidatePath('/zona/<id>')
 // via app/actions.ts for instant on-demand revalidation. Out-of-band changes
@@ -126,15 +126,7 @@ export default async function ZonaPage({ params }: Props) {
         )}
 
         {fotos.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {fotos.map((foto, index) => (
-              <ZonePhoto
-                key={`${foto}-${index}`}
-                src={foto}
-                alt={`Foto de la zona ${location.nombre}`}
-              />
-            ))}
-          </div>
+          <ZonePhotoGallery fotos={fotos} zoneName={location.nombre} />
         )}
 
         {total > 0 && (
