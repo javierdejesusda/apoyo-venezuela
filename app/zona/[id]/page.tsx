@@ -11,6 +11,10 @@ import { AddNeedForm } from '@/components/add-need-form';
 import { NeedList } from '@/components/need-list';
 import { ZonePhoto } from '@/components/zone-photo';
 
+// Live emergency data: render on every request so a zone reflects the current
+// database (including removal) instead of a statically prerendered snapshot.
+export const dynamic = 'force-dynamic';
+
 interface Props {
   params: Promise<{ id: string }>;
 }
