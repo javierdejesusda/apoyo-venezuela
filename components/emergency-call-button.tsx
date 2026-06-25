@@ -9,7 +9,7 @@ export function EmergencyCallButton({ className }: { className?: string }) {
       href={telHref('911')}
       aria-label="Llamar al 911, línea de emergencias"
       className={cn(
-        'inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-danger px-4 text-sm font-semibold text-white shadow-sm transition-transform duration-150 active:scale-[0.96]',
+        'inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-danger px-4 text-sm font-semibold text-white shadow-card transition-transform duration-150 hover:brightness-105 active:scale-[0.96]',
         className,
       )}
     >

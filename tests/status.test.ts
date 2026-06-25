@@ -41,4 +41,18 @@ describe('toneClasses', () => {
       expect(classes.text.length).toBeGreaterThan(0);
     }
   });
+
+  it('uses accessible on-soft text tokens for the semaphore tones', () => {
+    expect(toneClasses('danger').text).toBe('text-tone-danger-text');
+    expect(toneClasses('warning').text).toBe('text-tone-warning-text');
+    expect(toneClasses('success').text).toBe('text-tone-success-text');
+    expect(toneClasses('brand').text).toBe('text-tone-brand-text');
+  });
+
+  it('keeps the base semaphore tone for dots and solids', () => {
+    expect(toneClasses('danger').dot).toBe('bg-danger');
+    expect(toneClasses('warning').dot).toBe('bg-warning');
+    expect(toneClasses('success').dot).toBe('bg-success');
+    expect(toneClasses('danger').solid).toBe('bg-danger text-white');
+  });
 });

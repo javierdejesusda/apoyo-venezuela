@@ -25,7 +25,7 @@ export function ViewToggle({
     <div
       role="tablist"
       aria-label="Cambiar vista"
-      className={cn('inline-flex rounded-xl border border-border-strong bg-surface p-1', className)}
+      className={cn('inline-flex rounded-xl border border-border-strong bg-surface p-1 shadow-card', className)}
     >
       {OPTIONS.map((option) => {
         const Icon = option.icon;
@@ -38,7 +38,7 @@ export function ViewToggle({
             aria-selected={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+              'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
               active ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-soft hover:text-ink',
             )}
           >

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ChevronLeft, MapPin, PhoneCall } from 'lucide-react';
 
 import { getStore } from '@/lib/data/store';
+import { statusMeta, toneClasses } from '@/lib/status';
 import { formatRelativeTime, telHref } from '@/lib/utils';
 import { StatusBadge } from '@/components/status-badges';
 import { AddNeedForm } from '@/components/add-need-form';
@@ -28,6 +29,11 @@ export default async function ZonaPage({ params }: Props) {
 
   const { total, pendientes, urgentes, cubiertos } = location.summary;
 
+  const tone = statusMeta[location.status].tone;
+  const tones = toneClasses(tone);
+  const isDerrumbe = location.status === 'derrumbe';
+  const fotos = location.fotos ?? [];
+
   return (
     <div className="mx-auto max-w-2xl pb-24 pt-4">
       <Link
@@ -39,8 +45,21 @@ export default async function ZonaPage({ params }: Props) {
       </Link>
 
       <div className="space-y-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-ink">{location.nombre}</h1>
+        <div className={`space-y-2 border-l-4 pl-4 ${tones.border}`}>
+          <p className="eyebrow flex items-center gap-2.5 text-ink-faint">
+            {isDerrumbe ? (
+              <span className="relative flex h-2 w-2 items-center justify-center" aria-hidden>
+                <span className={`live-ping absolute inline-flex h-full w-full rounded-full ${tones.dot}`} />
+                <span className={`relative inline-flex h-2 w-2 rounded-full ${tones.dot}`} />
+              </span>
+            ) : (
+              <span aria-hidden className="h-px w-7 bg-border-strong" />
+            )}
+            Zona reportada
+          </p>
+          <h1 className="text-3xl font-semibold text-ink sm:text-4xl">
+            {location.nombre}
+          </h1>
 
           {placeLabel && (
             <div className="flex items-center gap-1.5 text-sm text-ink-soft">
@@ -69,6 +88,21 @@ export default async function ZonaPage({ params }: Props) {
 
         {location.descripcion && (
           <p className="text-sm leading-relaxed text-ink-soft">{location.descripcion}</p>
+        )}
+
+        {fotos.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {fotos.map((foto, index) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={`${foto}-${index}`}
+                src={foto}
+                alt={`Foto de la zona ${location.nombre}`}
+                loading="lazy"
+                className="img-outline aspect-square w-full rounded-xl object-cover"
+              />
+            ))}
+          </div>
         )}
 
         {total > 0 && (

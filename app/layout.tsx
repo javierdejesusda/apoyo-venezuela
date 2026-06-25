@@ -13,6 +13,7 @@ import { isDemoMode } from '@/lib/data/store';
 
 const display = Bricolage_Grotesque({
   subsets: ['latin'],
+  axes: ['opsz'],
   variable: '--font-bricolage',
   display: 'swap',
 });
@@ -35,6 +36,16 @@ export const metadata: Metadata = {
   applicationName: 'Apoyo Venezuela',
   keywords: ['terremoto', 'Venezuela', 'ayuda', 'emergencia', 'sismo', 'damnificados', 'San Felipe', 'Carabobo'],
   authors: [{ name: 'Apoyo Venezuela' }],
+  creator: 'Apoyo Venezuela',
+  publisher: 'Apoyo Venezuela',
+  category: 'public safety',
+  formatDetection: { telephone: false },
+  alternates: { canonical: '/' },
+  appleWebApp: {
+    capable: true,
+    title: 'Apoyo VE',
+    statusBarStyle: 'black-translucent',
+  },
   openGraph: {
     type: 'website',
     locale: 'es_VE',
@@ -49,7 +60,16 @@ export const metadata: Metadata = {
     title: 'Apoyo Venezuela',
     description: 'Coordina ayuda tras el terremoto en Venezuela.',
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export const viewport: Viewport = {

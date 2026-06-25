@@ -17,9 +17,11 @@ import {
 import type { Metadata } from 'next';
 
 import { MissingPersonsLink } from '@/components/missing-persons-link';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { aidOrganizations, shelters, supplyGuidance } from '@/lib/data/resources';
 import type { ResourceItem } from '@/lib/data/types';
+import { toneClasses, type Tone } from '@/lib/status';
 import { cn, telHref } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -41,15 +43,22 @@ function SectionHeading({
   icon: Icon,
   title,
   subtitle,
+  tone = 'brand',
 }: {
   id: string;
   icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
   title: string;
   subtitle?: string;
+  tone?: Tone;
 }) {
   return (
     <div className="mb-6 flex items-start gap-3">
-      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white">
+      <span
+        className={cn(
+          'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
+          toneClasses(tone).solid,
+        )}
+      >
         <Icon className="h-5 w-5" aria-hidden />
       </span>
       <div>
@@ -230,12 +239,19 @@ export default function GuiaPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-12 py-6">
+      <PageHeader
+        eyebrow="Guía"
+        title="Cómo ayudar, sin estorbar"
+        description="Datos del sismo, qué donar y qué evitar, refugios, organizaciones verificadas y personas desaparecidas."
+      />
+
       <section aria-labelledby="sismo-heading">
         <SectionHeading
           id="sismo-heading"
           icon={TriangleAlert}
           title="Datos del sismo"
           subtitle="Información factual sobre el terremoto del 24 de junio de 2026"
+          tone="danger"
         />
         <Card>
           <div className="space-y-3 text-sm text-ink-soft leading-relaxed">
@@ -272,11 +288,12 @@ export default function GuiaPage() {
           icon={ShieldCheck}
           title="Qué donar y qué evitar"
           subtitle="Recomendaciones basadas en estándares internacionales de respuesta a desastres"
+          tone="success"
         />
 
         {neededCategories.length > 0 && (
           <div className="mb-6">
-            <h3 className="mb-3 flex items-center gap-2 font-semibold text-ink">
+            <h3 className="mb-3 flex items-center gap-2 text-[17px] font-semibold text-ink">
               <CheckCircle className="h-4 w-4 text-success" aria-hidden />
               Lo que se necesita
             </h3>
@@ -302,7 +319,7 @@ export default function GuiaPage() {
 
         {avoidCategories.length > 0 && (
           <div className="mb-6">
-            <h3 className="mb-3 flex items-center gap-2 font-semibold text-ink">
+            <h3 className="mb-3 flex items-center gap-2 text-[17px] font-semibold text-ink">
               <TriangleAlert className="h-4 w-4 text-danger" aria-hidden />
               Qué evitar
             </h3>
@@ -320,7 +337,7 @@ export default function GuiaPage() {
 
         {unknownCategories.length > 0 && (
           <div>
-            <h3 className="mb-3 font-semibold text-ink">Recomendaciones</h3>
+            <h3 className="mb-3 text-[17px] font-semibold text-ink">Recomendaciones</h3>
             <Card>
               <ul className="divide-y divide-border">
                 {unknownCategories.flatMap((cat) =>
@@ -345,6 +362,7 @@ export default function GuiaPage() {
           icon={Building}
           title="Refugios y centros de acopio"
           subtitle="Información actualizada según la cobertura disponible al 24-jun-2026"
+          tone="neutral"
         />
         <div className="space-y-4">
           {shelters.map((shelter) => (
@@ -359,6 +377,7 @@ export default function GuiaPage() {
           icon={Users}
           title="Organizaciones de ayuda"
           subtitle="Canales verificados para donar o coordinar asistencia"
+          tone="neutral"
         />
         <div className="space-y-4">
           {aidOrganizations.map((org) => (
@@ -373,6 +392,7 @@ export default function GuiaPage() {
           icon={Users}
           title="Personas desaparecidas"
           subtitle="Reporta o consulta personas desaparecidas tras el sismo"
+          tone="neutral"
         />
         <MissingPersonsLink variant="card" />
       </section>

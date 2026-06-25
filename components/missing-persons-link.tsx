@@ -34,7 +34,7 @@ export function MissingPersonsLink({ variant = 'card', className }: MissingPerso
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        'group flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 transition-colors hover:border-brand-300 dark:border-brand-900 dark:bg-brand-900/20',
+        'group flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 shadow-card transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lift active:scale-[0.99] dark:border-brand-900 dark:bg-brand-900/20',
         className,
       )}
     >

@@ -65,6 +65,7 @@ export function createMemoryStore(initial?: MemorySeed): DataStore {
         descripcion: input.descripcion,
         contactoNombre: input.contactoNombre,
         contactoTelefono: input.contactoTelefono,
+        fotos: input.fotos ?? [],
         createdAt: ts,
         updatedAt: ts,
       };

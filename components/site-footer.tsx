@@ -1,19 +1,24 @@
 import Link from 'next/link';
 
-import { ExternalLink, LifeBuoy, TriangleAlert } from 'lucide-react';
+import { ExternalLink, TriangleAlert } from 'lucide-react';
 
+import { BrandMark } from '@/components/ui/brand-mark';
 import { DESAPARECIDOS_URL } from '@/lib/constants';
 
 /** Footer with navigation, the missing-persons site, and a non-partisan notice. */
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-surface">
+    <footer className="relative border-t border-border bg-surface">
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-danger via-warning to-brand-400 opacity-50"
+      />
       <div className="mx-auto w-full max-w-5xl space-y-4 px-4 pb-24 pt-8 md:pb-10">
-        <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-            <LifeBuoy className="h-5 w-5" aria-hidden />
+        <div className="flex items-center gap-2.5">
+          <BrandMark className="h-8 w-8" />
+          <span className="font-display text-base font-semibold tracking-tight text-ink">
+            Apoyo Venezuela
           </span>
-          <span className="font-display text-base font-semibold text-ink">Apoyo Venezuela</span>
         </div>
 
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-soft" aria-label="Pie de página">

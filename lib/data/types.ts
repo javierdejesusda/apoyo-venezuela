@@ -86,6 +86,7 @@ export interface LocationRecord {
   descripcion?: string;
   contactoNombre?: string;
   contactoTelefono?: string;
+  fotos?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -129,7 +130,11 @@ export interface CreateLocationInput {
   descripcion?: string;
   contactoNombre?: string;
   contactoTelefono?: string;
+  fotos?: string[];
 }
+
+/** Maximum number of photos a single zone report may attach. */
+export const MAX_FOTOS = 4;
 
 export interface CreateNeedInput {
   locationId: string;

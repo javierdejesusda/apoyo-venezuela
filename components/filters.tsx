@@ -60,7 +60,7 @@ export function Filters({ value, onChange, states, resultCount }: FiltersProps) 
       <div className="flex flex-wrap items-center gap-2">
         <label
           className={cn(
-            'inline-flex h-9 cursor-pointer select-none items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors',
+            'inline-flex h-10 cursor-pointer select-none items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors sm:h-9',
             value.soloUrgentes
               ? 'border-danger/30 bg-danger/10 text-danger'
               : 'border-border-strong bg-surface text-ink-soft hover:text-ink',
@@ -95,7 +95,7 @@ export function Filters({ value, onChange, states, resultCount }: FiltersProps) 
           <button
             type="button"
             onClick={() => onChange({})}
-            className="inline-flex h-9 items-center gap-1 rounded-full px-3 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+            className="inline-flex h-10 items-center gap-1 rounded-full px-3 text-sm font-medium text-ink-soft transition-colors hover:text-ink sm:h-9"
           >
             <X className="h-4 w-4" aria-hidden /> Limpiar
           </button>
@@ -125,7 +125,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-medium transition-colors',
+        'inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-medium transition-colors sm:h-9',
         active
           ? 'border-brand-600 bg-brand-600 text-white'
           : 'border-border-strong bg-surface text-ink-soft hover:text-ink',

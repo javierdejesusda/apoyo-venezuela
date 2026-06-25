@@ -79,8 +79,16 @@ export function sortLocations(locations: LocationWithNeeds[]): LocationWithNeeds
   });
 }
 
+/** Aggregate counts shown in the home situation board. */
+export interface GlobalStats {
+  zonas: number;
+  derrumbes: number;
+  urgentes: number;
+  necesidadesAbiertas: number;
+}
+
 /** Aggregate counts for the home header. */
-export function globalStats(locations: LocationWithNeeds[]) {
+export function globalStats(locations: LocationWithNeeds[]): GlobalStats {
   let derrumbes = 0;
   let urgentes = 0;
   let necesidadesAbiertas = 0;

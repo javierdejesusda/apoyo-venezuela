@@ -63,7 +63,7 @@ export function toneClasses(tone: Tone): ToneClasses {
   switch (tone) {
     case 'danger':
       return {
-        text: 'text-danger',
+        text: 'text-tone-danger-text',
         bg: 'bg-danger/10',
         border: 'border-danger/25',
         dot: 'bg-danger',
@@ -71,7 +71,7 @@ export function toneClasses(tone: Tone): ToneClasses {
       };
     case 'warning':
       return {
-        text: 'text-warning',
+        text: 'text-tone-warning-text',
         bg: 'bg-warning/12',
         border: 'border-warning/30',
         dot: 'bg-warning',
@@ -79,7 +79,7 @@ export function toneClasses(tone: Tone): ToneClasses {
       };
     case 'success':
       return {
-        text: 'text-success',
+        text: 'text-tone-success-text',
         bg: 'bg-success/10',
         border: 'border-success/25',
         dot: 'bg-success',
@@ -87,7 +87,7 @@ export function toneClasses(tone: Tone): ToneClasses {
       };
     case 'brand':
       return {
-        text: 'text-brand-600',
+        text: 'text-tone-brand-text',
         bg: 'bg-brand-600/10',
         border: 'border-brand-600/25',
         dot: 'bg-brand-600',

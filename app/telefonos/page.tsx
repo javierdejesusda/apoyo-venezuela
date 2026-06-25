@@ -7,6 +7,7 @@ import { stateContacts } from '@/lib/data/emergency-contacts';
 import { telHref } from '@/lib/utils';
 import { EmergencyCallButton } from '@/components/emergency-call-button';
 import { ContactsExplorer } from '@/components/contacts-explorer';
+import { PageHeader } from '@/components/page-header';
 
 export const metadata: Metadata = {
   title: 'Teléfonos de emergencia',
@@ -15,13 +16,10 @@ export const metadata: Metadata = {
 export default function TelefonosPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-10 py-8">
-      {/* Page heading */}
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          Teléfonos de emergencia
-        </h1>
-
-        {/* Verification notice */}
+      <PageHeader
+        eyebrow="Directorio verificado"
+        title="Teléfonos de emergencia"
+      >
         <div
           role="note"
           className="flex items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3"
@@ -32,7 +30,7 @@ export default function TelefonosPage() {
             llamar; las líneas pueden saturarse en situaciones de emergencia masiva.
           </p>
         </div>
-      </div>
+      </PageHeader>
 
       {/* National numbers */}
       <section aria-labelledby="nacionales-heading">

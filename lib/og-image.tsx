@@ -1,7 +1,35 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { ImageResponse } from 'next/og';
+
+import { VE_PATHS } from '@/components/ui/venezuela-silhouette';
 
 /** Dimensions for the social share cards (OpenGraph and Twitter). */
 export const OG_SIZE = { width: 1200, height: 630 };
+
+/**
+ * Static Bricolage Grotesque (weight 700) used for the headline wordmark.
+ * The image routes prerender at build time, where process.cwd() is the repo
+ * root. next.config outputFileTracingIncludes also ships the font for any
+ * runtime render of these routes.
+ */
+const bricolageBold = readFileSync(
+  join(process.cwd(), 'assets/fonts/BricolageGrotesque-Bold.ttf'),
+);
+
+/** Inline national silhouette for the social card (Satori-friendly). */
+function Venezuela({ size, fill }: { size: number; fill: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 1024 1024">
+      <g transform="translate(0,1024) scale(0.1,-0.1)" fill={fill}>
+        {VE_PATHS.map((d, i) => (
+          <path key={i} d={d} />
+        ))}
+      </g>
+    </svg>
+  );
+}
 
 /** Renders the shared branded social card used by both image routes. */
 export function renderOgImage(): ImageResponse {
@@ -13,68 +41,85 @@ export function renderOgImage(): ImageResponse {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #1c2f79 0%, #1f47df 60%, #5d86fb 100%)',
-          padding: '80px 96px',
+          justifyContent: 'space-between',
+          background: 'linear-gradient(135deg, #0d1320 0%, #16203a 100%)',
+          padding: '64px 72px',
+          position: 'relative',
         }}
       >
+        {/* Thin emergency signal line across the top. */}
         <div
           style={{
-            display: 'flex',
-            width: 96,
-            height: 96,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.15)',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 40,
-            border: '3px solid rgba(255,255,255,0.4)',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 6,
+            backgroundImage: 'linear-gradient(to right, #e5484d, #e8930c, #5d86fb)',
           }}
-        >
-          <span style={{ fontSize: 52, fontWeight: 700, color: 'white', lineHeight: 1 }}>A</span>
+        />
+
+        {/* National silhouette watermark, bleeding off the right edge. */}
+        <div style={{ position: 'absolute', top: 30, right: -150, display: 'flex', opacity: 0.08 }}>
+          <Venezuela size={780} fill="#ffffff" />
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 80,
-            fontWeight: 800,
-            color: 'white',
-            letterSpacing: '-2px',
-            lineHeight: 1.1,
-            textAlign: 'center',
-          }}
-        >
-          Apoyo Venezuela
+        {/* Brand mark + eyebrow. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+          <div
+            style={{
+              display: 'flex',
+              width: 88,
+              height: 88,
+              borderRadius: 24,
+              background: 'linear-gradient(135deg, #2a5cff, #1a39bd)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Venezuela size={60} fill="#ffffff" />
+          </div>
+          <div style={{ display: 'flex', fontSize: 26, letterSpacing: 6, color: '#aeb8cd', fontWeight: 600 }}>
+            EMERGENCIA · SISMO 24 JUN 2026
+          </div>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 32,
-            color: 'rgba(255,255,255,0.80)',
-            marginTop: 24,
-            textAlign: 'center',
-            lineHeight: 1.4,
-          }}
-        >
-          Coordina ayuda tras el terremoto
+        {/* Headline. */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div
+            style={{
+              display: 'flex',
+              fontFamily: 'Bricolage Grotesque',
+              fontSize: 94,
+              fontWeight: 800,
+              color: '#f5f7fc',
+              letterSpacing: -2,
+              lineHeight: 1.04,
+            }}
+          >
+            Apoyo Venezuela
+          </div>
+          <div style={{ display: 'flex', fontSize: 40, color: '#aeb8cd', marginTop: 20 }}>
+            Coordina la ayuda tras el terremoto, zona por zona
+          </div>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 24,
-            color: 'rgba(255,255,255,0.55)',
-            marginTop: 16,
-            letterSpacing: '0.5px',
-          }}
-        >
+        {/* Domain. */}
+        <div style={{ display: 'flex', fontSize: 28, color: '#74809a', letterSpacing: 1 }}>
           apoyovenezuela.com
         </div>
       </div>
     ),
-    { ...OG_SIZE },
+    {
+      ...OG_SIZE,
+      fonts: [
+        {
+          name: 'Bricolage Grotesque',
+          data: bricolageBold,
+          weight: 700,
+          style: 'normal',
+        },
+      ],
+    },
   );
 }

@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import {
   EMERGENCY_STATUSES,
+  MAX_FOTOS,
   NEED_CATEGORIES,
   NEED_STATUSES,
   URGENCIES,
@@ -26,6 +27,11 @@ const optionalText = (max: number) =>
     .optional()
     .transform((value) => (value === '' ? undefined : value));
 
+/** Accepts public http(s) URLs and inline data:image URLs (demo mode). */
+const fotoUrl = z
+  .string()
+  .refine((value) => /^(https?:|data:image\/)/.test(value), 'URL de imagen no valida');
+
 export const createLocationSchema = z.object({
   nombre: z
     .string()
@@ -41,6 +47,7 @@ export const createLocationSchema = z.object({
   descripcion: optionalText(1000),
   contactoNombre: optionalText(80),
   contactoTelefono: optionalText(40),
+  fotos: z.array(fotoUrl).max(MAX_FOTOS, `Maximo ${MAX_FOTOS} fotos`).optional(),
 });
 
 export const createNeedSchema = z.object({

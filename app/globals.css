@@ -5,7 +5,8 @@
  * Fonts (--font-bricolage / --font-ibm-plex) are injected by next/font in
  * app/layout.tsx. The status palette (danger/warning/success) is fixed so the
  * emergency "semaphore" reads identically in light and dark mode; surface and
- * ink tokens flip with the color scheme.
+ * ink tokens flip with the color scheme. The "hero" panel tokens stay constant
+ * in both schemes so the signature situation board reads the same everywhere.
  */
 @theme {
   --font-sans: var(--font-ibm-plex), ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -23,36 +24,69 @@
   --color-brand-800: #1b3299;
   --color-brand-900: #1c2f79;
 
-  /* Emergency semaphore. */
+  /* Emergency semaphore (must match TONE_HEX in lib/status.ts). */
   --color-danger: #e5484d;
   --color-warning: #e8930c;
   --color-success: #2e9e5b;
   --color-info: #2f72e8;
+
+  /* Layered elevation. New names so Tailwind's default shadow scale is intact. */
+  --shadow-card: 0 1px 2px rgba(16, 21, 33, 0.04), 0 2px 6px rgba(16, 21, 33, 0.05);
+  --shadow-lift: 0 1px 2px rgba(16, 21, 33, 0.05), 0 8px 24px -8px rgba(16, 21, 33, 0.16);
+  --shadow-pop: 0 2px 8px rgba(16, 21, 33, 0.08), 0 18px 48px -12px rgba(16, 21, 33, 0.28);
 }
 
 :root {
-  --canvas: #f4f5f7;
+  /* Cool "architectural concrete" neutrals - reads as an instrument, not default gray. */
+  --canvas: #f1f4f8;
   --surface: #ffffff;
-  --surface-2: #eef0f4;
-  --ink: #14171c;
-  --ink-soft: #4b5160;
-  --ink-faint: #868d9b;
-  --border: #e3e6ec;
-  --border-strong: #cfd4dd;
+  --surface-2: #e9edf4;
+  --surface-3: #dfe5ef;
+  --ink: #131720;
+  --ink-soft: #4a515f;
+  --ink-faint: #828b9b;
+  --border: #e0e5ee;
+  --border-strong: #ccd3df;
   --ring: #1f47df;
+
+  /*
+   * Accessible text for soft badges (tone text on a bg-<tone>/10 tint). The
+   * base semaphore hexes fail 4.5:1 on these light tints, so the badge text
+   * uses these darkened variants while dots/solids/markers keep the base tone.
+   */
+  --tone-warning-text: #8a5200;
+  --tone-success-text: #1b7340;
+  --tone-danger-text: #bd2f34;
+  --tone-brand-text: #1f47df;
+
+  /* Signature situation-board panel - constant across light/dark. */
+  --hero-bg: #0d1320;
+  --hero-bg-2: #141d31;
+  --hero-ink: #f5f7fc;
+  --hero-ink-soft: #aeb8cd;
+  --hero-ink-faint: #74809a;
+  --hero-border: rgba(255, 255, 255, 0.09);
+  --hero-line: rgba(255, 255, 255, 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas: #0c0e12;
-    --surface: #15181e;
-    --surface-2: #1d212a;
-    --ink: #eef0f4;
-    --ink-soft: #a9b0bd;
+    --canvas: #0a0c11;
+    --surface: #141821;
+    --surface-2: #1c2230;
+    --surface-3: #252d3d;
+    --ink: #eef1f6;
+    --ink-soft: #abb3c2;
     --ink-faint: #79808d;
-    --border: #262b34;
-    --border-strong: #353b46;
+    --border: #242b38;
+    --border-strong: #353e4e;
     --ring: #5d86fb;
+
+    /* On dark soft tints the base hexes go too low; lighten the badge text. */
+    --tone-warning-text: #f0a93a;
+    --tone-success-text: #54c08a;
+    --tone-danger-text: #ff8a8e;
+    --tone-brand-text: #8fb0ff;
   }
 }
 
@@ -60,11 +94,23 @@
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-ink-faint: var(--ink-faint);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+
+  --color-tone-warning-text: var(--tone-warning-text);
+  --color-tone-success-text: var(--tone-success-text);
+  --color-tone-danger-text: var(--tone-danger-text);
+  --color-tone-brand-text: var(--tone-brand-text);
+
+  --color-hero: var(--hero-bg);
+  --color-hero-ink: var(--hero-ink);
+  --color-hero-ink-soft: var(--hero-ink-soft);
+  --color-hero-ink-faint: var(--hero-ink-faint);
+  --color-hero-border: var(--hero-border);
 }
 
 @layer base {
@@ -82,7 +128,7 @@
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     text-wrap: balance;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
   p {
     text-wrap: pretty;
@@ -95,6 +141,15 @@
   button, a, [role="button"] {
     -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* Eyebrow / data labels: small caps utility used across hero and section heads. */
+.eyebrow {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  font-size: 0.6875rem;
 }
 
 /* Leaflet fills its container and sits beneath the app chrome. */
@@ -111,15 +166,76 @@
 .leaflet-bar a {
   color: var(--color-ink);
 }
+/* Refined popups to match the app surfaces. */
+.leaflet-popup-content-wrapper {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+  border-radius: 0.875rem;
+  box-shadow: var(--shadow-pop);
+}
+.leaflet-popup-content {
+  margin: 0.75rem 0.875rem;
+}
+.leaflet-popup-tip {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-pop);
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--color-ink-faint);
+}
+
+/* Motion ------------------------------------------------------------------ */
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
 .animate-fade-up {
-  animation: fade-up 0.4s cubic-bezier(0.2, 0, 0, 1) both;
+  animation: fade-up 0.5s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* Seismic radiation: a ring that expands and fades, used for the live pulse
+ * and the map/empty loaders - the page's recurring "epicenter" device. */
+@keyframes seismic {
+  0% { transform: scale(0.35); opacity: 0.55; }
+  70% { opacity: 0.06; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+.seismic-ring {
+  animation: seismic 2.4s cubic-bezier(0.16, 0.84, 0.44, 1) infinite;
+}
+
+@keyframes live-ping {
+  0% { transform: scale(1); opacity: 0.6; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+.live-ping {
+  animation: live-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Subtle outline keeps imagery (map, og) crisp against any surface. */
+.img-outline {
+  outline: 1px solid rgba(0, 0, 0, 0.1);
+  outline-offset: -1px;
+}
+@media (prefers-color-scheme: dark) {
+  .img-outline {
+    outline-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

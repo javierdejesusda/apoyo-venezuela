@@ -3,13 +3,17 @@
 import 'leaflet/dist/leaflet.css';
 
 import L from 'leaflet';
-import { LocateFixed } from 'lucide-react';
-import React, { useCallback, useEffect, useRef } from 'react';
+import { Image as ImageIcon, LocateFixed } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 
 import type { LocationWithNeeds } from '@/lib/data/types';
 import { EMERGENCY_STATUSES } from '@/lib/data/types';
 import { statusMeta, TONE_HEX } from '@/lib/status';
+import { usePrefersDark, usePrefersReducedMotion } from '@/lib/use-prefers-dark';
+
+// Cap on how many derrumbe pins may pulse so battery / GPU stays bounded.
+const MAX_PULSING = 5;
 
 export interface MapViewProps {
   locations: LocationWithNeeds[];
@@ -23,19 +27,26 @@ const DEFAULT_CENTER: L.LatLngExpression = [10.2, -67.6];
 const DEFAULT_ZOOM = 7;
 
 /** Builds a circular div-based pin icon for a map marker. */
-function buildPinIcon(hex: string, selected: boolean): L.DivIcon {
+function buildPinIcon(hex: string, selected: boolean, pulse: boolean): L.DivIcon {
   const size = selected ? 22 : 16;
   const ring = selected
-    ? `box-shadow:0 0 0 3px ${hex}66,0 0 0 5px ${hex}33;`
+    ? `box-shadow:0 0 0 3px ${hex}55,0 0 0 6px ${hex}22,0 2px 6px rgba(15,20,30,0.4);`
+    : 'box-shadow:0 1px 4px rgba(15,20,30,0.35);';
+  // Collapse zones (danger) radiate a slow ring so they read first.
+  const pulseEl = pulse
+    ? `<span class="seismic-ring" style="position:absolute;inset:-4px;border-radius:50%;border:1.5px solid ${hex};"></span>`
     : '';
-  const html = `<div style="
-    width:${size}px;height:${size}px;
-    border-radius:50%;
-    background:${hex};
-    border:2px solid rgba(255,255,255,0.9);
-    ${ring}
-    box-sizing:border-box;
-  "></div>`;
+  const html = `<div style="position:relative;width:${size}px;height:${size}px;">
+    ${pulseEl}
+    <div style="
+      position:relative;width:${size}px;height:${size}px;
+      border-radius:50%;
+      background:${hex};
+      border:2px solid #fff;
+      ${ring}
+      box-sizing:border-box;
+    "></div>
+  </div>`;
   return L.divIcon({
     html,
     className: '',
@@ -117,10 +128,10 @@ function GeolocationButton(): React.JSX.Element {
       className={[
         'absolute bottom-10 right-3 z-[1000]',
         'flex items-center justify-center',
-        'h-9 w-9 rounded-lg',
-        'bg-surface border border-border-strong shadow-md',
+        'h-10 w-10 rounded-xl',
+        'bg-surface border border-border-strong shadow-pop',
         'text-ink-soft hover:text-ink hover:border-border-strong',
-        'transition-colors focus-visible:outline-none focus-visible:ring-2',
+        'transition-[color,transform] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2',
         'focus-visible:ring-brand-600',
       ].join(' ')}
     >
@@ -129,38 +140,62 @@ function GeolocationButton(): React.JSX.Element {
   );
 }
 
-/** Compact overlay listing all four statuses with color swatch + label. */
+/**
+ * Compact overlay listing all four statuses with color swatch + label.
+ * Below sm it collapses to an "Estado" pill so it never covers top-right pins;
+ * at sm and up it stays open.
+ */
 function Legend(): React.JSX.Element {
+  const [open, setOpen] = useState(false);
+
   return (
-    <div
-      aria-label="Leyenda de estado de zonas"
-      className={[
-        'absolute top-3 right-3 z-[1000]',
-        'bg-surface/95 backdrop-blur-sm',
-        'border border-border rounded-lg',
-        'px-3 py-2 shadow-md',
-        'text-xs text-ink',
-      ].join(' ')}
-    >
-      <p className="font-semibold text-ink mb-1.5 text-xs uppercase tracking-wide">
+    <div className="absolute top-3 right-3 z-[1000]">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="map-legend-list"
+        className={[
+          'sm:hidden inline-flex items-center justify-center',
+          'min-h-11 rounded-xl px-3 py-2',
+          'bg-surface/95 backdrop-blur-sm border border-border shadow-pop',
+          'eyebrow text-ink-faint',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600',
+        ].join(' ')}
+      >
         Estado
-      </p>
-      <ul className="space-y-1" role="list">
-        {EMERGENCY_STATUSES.map((s) => {
-          const meta = statusMeta[s];
-          const hex = TONE_HEX[meta.tone];
-          return (
-            <li key={s} className="flex items-center gap-1.5">
-              <span
-                aria-hidden="true"
-                style={{ backgroundColor: hex }}
-                className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
-              />
-              <span className="text-ink-soft leading-none">{meta.label}</span>
-            </li>
-          );
-        })}
-      </ul>
+      </button>
+
+      <div
+        className={[
+          open ? 'block' : 'hidden',
+          'sm:block mt-1 sm:mt-0',
+          'bg-surface/95 backdrop-blur-sm',
+          'border border-border rounded-xl',
+          'px-3 py-2.5 shadow-pop',
+          'text-xs text-ink',
+        ].join(' ')}
+      >
+        <p id="map-legend-heading" className="eyebrow text-ink-faint mb-1.5">
+          Estado
+        </p>
+        <ul id="map-legend-list" aria-labelledby="map-legend-heading" className="space-y-1" role="list">
+          {EMERGENCY_STATUSES.map((s) => {
+            const meta = statusMeta[s];
+            const hex = TONE_HEX[meta.tone];
+            return (
+              <li key={s} className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  style={{ backgroundColor: hex }}
+                  className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                />
+                <span className="text-ink-soft leading-none">{meta.label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -172,7 +207,43 @@ export default function MapView({
   className,
 }: MapViewProps): React.JSX.Element {
   const markerRefs = useRef<Map<string, L.Marker>>(new Map());
-  const valid = validLocations(locations);
+  const valid = useMemo(() => validLocations(locations), [locations]);
+  const isDark = usePrefersDark();
+  const reducedMotion = usePrefersReducedMotion();
+  // Muted CARTO basemap reads as an instrument and lets the semaphore pins pop.
+  const tileUrl = isDark
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+
+  // Bound the pulse to the selected pin plus the most urgent derrumbe zones so
+  // we never run dozens of infinite animations at once.
+  const pulsingIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (reducedMotion) return ids;
+    if (selectedId) ids.add(selectedId);
+    const topDerrumbe = valid
+      .filter((loc) => loc.status === 'derrumbe')
+      .sort(
+        (a, b) =>
+          b.summary.urgentes - a.summary.urgentes ||
+          b.summary.total - a.summary.total,
+      )
+      .slice(0, MAX_PULSING);
+    for (const loc of topDerrumbe) ids.add(loc.id);
+    return ids;
+  }, [valid, selectedId, reducedMotion]);
+
+  // Memoize icons so markers do not rebuild a DivIcon on every render.
+  const iconCache = useMemo(() => {
+    const cache = new Map<string, L.DivIcon>();
+    for (const loc of valid) {
+      const hex = TONE_HEX[statusMeta[loc.status].tone];
+      const isSelected = loc.id === selectedId;
+      const shouldPulse = pulsingIds.has(loc.id);
+      cache.set(loc.id, buildPinIcon(hex, isSelected, shouldPulse));
+    }
+    return cache;
+  }, [valid, selectedId, pulsingIds]);
 
   return (
     <div
@@ -188,8 +259,9 @@ export default function MapView({
         style={{ height: '100%', width: '100%', position: 'absolute', inset: 0 }}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
+          key={tileUrl}
+          url={tileUrl}
+          attribution="&copy; OpenStreetMap &copy; CARTO"
         />
 
         <BoundsAndSelection
@@ -205,8 +277,9 @@ export default function MapView({
         {valid.map((loc) => {
           const meta = statusMeta[loc.status];
           const hex = TONE_HEX[meta.tone];
-          const isSelected = loc.id === selectedId;
-          const icon = buildPinIcon(hex, isSelected);
+          // Built from the same `valid` array in this render, so always present.
+          const icon = iconCache.get(loc.id) as L.DivIcon;
+          const fotoCount = loc.fotos?.length ?? 0;
 
           return (
             <Marker
@@ -250,6 +323,15 @@ export default function MapView({
                       </span>
                     )}
                   </p>
+
+                  {fotoCount > 0 && (
+                    <p className="flex items-center gap-1 text-ink-faint text-xs mb-2">
+                      <ImageIcon size={12} aria-hidden="true" />
+                      <span>
+                        {fotoCount} {fotoCount === 1 ? 'foto' : 'fotos'}
+                      </span>
+                    </p>
+                  )}
 
                   <a
                     href={`/zona/${loc.id}`}

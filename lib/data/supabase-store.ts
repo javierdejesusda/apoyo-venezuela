@@ -31,6 +31,7 @@ interface LocationRow {
   descripcion: string | null;
   contacto_nombre: string | null;
   contacto_telefono: string | null;
+  fotos: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,7 +48,7 @@ interface NeedRow {
   updated_at: string;
 }
 
-function toLocation(r: LocationRow): LocationRecord {
+export function toLocation(r: LocationRow): LocationRecord {
   return {
     id: r.id,
     nombre: r.nombre,
@@ -60,6 +61,7 @@ function toLocation(r: LocationRow): LocationRecord {
     descripcion: r.descripcion ?? undefined,
     contactoNombre: r.contacto_nombre ?? undefined,
     contactoTelefono: r.contacto_telefono ?? undefined,
+    fotos: r.fotos ?? [],
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -134,6 +136,7 @@ export function createSupabaseStore(url: string, key: string): DataStore {
           descripcion: input.descripcion ?? null,
           contacto_nombre: input.contactoNombre ?? null,
           contacto_telefono: input.contactoTelefono ?? null,
+          fotos: input.fotos ?? [],
         })
         .select('*')
         .single();

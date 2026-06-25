@@ -7,6 +7,7 @@ import React, { useRef } from 'react';
 import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
 
 import { TONE_HEX } from '@/lib/status';
+import { usePrefersDark } from '@/lib/use-prefers-dark';
 import { cn } from '@/lib/utils';
 
 export interface LocationPickerProps {
@@ -66,6 +67,11 @@ export default function LocationPicker({
   className,
 }: LocationPickerProps): React.JSX.Element {
   const hasCoords = value.lat !== null && value.lng !== null;
+  const isDark = usePrefersDark();
+  // Match the muted CARTO basemap used on the home map for theme parity.
+  const tileUrl = isDark
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -80,8 +86,9 @@ export default function LocationPicker({
           style={{ height: '100%', width: '100%', position: 'absolute', inset: 0 }}
         >
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap contributors"
+            key={tileUrl}
+            url={tileUrl}
+            attribution="&copy; OpenStreetMap &copy; CARTO"
           />
           <ClickHandler onChange={onChange} />
           {hasCoords && (
