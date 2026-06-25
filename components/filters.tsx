@@ -4,7 +4,7 @@ import { type ReactNode } from 'react';
 
 import { Search, TriangleAlert, X, type LucideIcon } from 'lucide-react';
 
-import { Select } from '@/components/ui/form';
+import { Input, Select } from '@/components/ui/form';
 import { EMERGENCY_STATUSES, type LocationFilters } from '@/lib/data/types';
 import { statusMeta } from '@/lib/status';
 import { cn } from '@/lib/utils';
@@ -30,14 +30,14 @@ export function Filters({ value, onChange, states, resultCount }: FiltersProps) 
           className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
           aria-hidden
         />
-        <input
+        <Input
           type="search"
           inputMode="search"
           value={value.texto ?? ''}
           onChange={(event) => set({ texto: event.target.value || undefined })}
           placeholder="Buscar por zona, ciudad o estado"
           aria-label="Buscar zonas"
-          className="h-11 w-full rounded-xl border border-border-strong bg-surface pl-10 pr-3.5 text-base text-ink shadow-sm outline-none placeholder:text-ink-faint focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/30"
+          className="pl-10"
         />
       </div>
 

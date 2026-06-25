@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import type { StateContacts } from '@/lib/data/types';
-import { Select } from '@/components/ui/form';
+import { Label, Select } from '@/components/ui/form';
 import { ContactCard } from '@/components/contact-card';
 
 interface ContactsExplorerProps {
@@ -24,9 +24,9 @@ export function ContactsExplorer({ states }: ContactsExplorerProps) {
     <section aria-label="Directorio por estado">
       {/* State picker */}
       <div className="mb-5">
-        <label htmlFor="estado-select" className="block text-sm font-medium text-ink mb-1.5">
+        <Label htmlFor="estado-select" className="mb-1.5">
           Estado
-        </label>
+        </Label>
         <Select
           id="estado-select"
           value={selected}

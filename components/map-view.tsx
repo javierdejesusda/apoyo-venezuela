@@ -89,12 +89,8 @@ function BoundsAndSelection({
   return null;
 }
 
-interface GeolocationButtonProps {
-  onLocate: (lat: number, lng: number) => void;
-}
-
 /** Button that uses the Geolocation API to pan the map to the user. */
-function GeolocationButton({ onLocate }: GeolocationButtonProps): React.JSX.Element {
+function GeolocationButton(): React.JSX.Element {
   const map = useMap();
   const supported = typeof navigator !== 'undefined' && 'geolocation' in navigator;
 
@@ -104,12 +100,11 @@ function GeolocationButton({ onLocate }: GeolocationButtonProps): React.JSX.Elem
       (pos) => {
         const { latitude, longitude } = pos.coords;
         map.setView([latitude, longitude], 13, { animate: true });
-        onLocate(latitude, longitude);
       },
       // Denied or unavailable - silently ignore.
       () => undefined,
     );
-  }, [map, onLocate, supported]);
+  }, [map, supported]);
 
   if (!supported) return <></>;
 
@@ -203,7 +198,7 @@ export default function MapView({
           markerRefs={markerRefs}
         />
 
-        <GeolocationButton onLocate={() => undefined} />
+        <GeolocationButton />
 
         <Legend />
 
