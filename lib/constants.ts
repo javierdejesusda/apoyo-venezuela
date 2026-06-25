@@ -5,3 +5,6 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://apoyovenezu
 
 /** Sister project for missing-person reports after the earthquake. */
 export const DESAPARECIDOS_URL = 'https://desaparecidosterremotovenezuela.com';
+
+/** Public source repository: the project is open source and contributions are welcome. */
+export const GITHUB_URL = 'https://github.com/javierdejesusda/apoyo-venezuela';
