@@ -8,6 +8,7 @@ import { ImagePlus, MapPin, Send, X } from 'lucide-react';
 import { createLocationAction } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Label, Select, Textarea } from '@/components/ui/form';
+import { MapSkeleton } from '@/components/ui/map-skeleton';
 import { getBrowserSupabase } from '@/lib/data/supabase-browser';
 import { validateFotoFile } from '@/lib/data/foto-validation';
 import {
@@ -40,9 +41,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
 
 const LocationPicker = dynamic(() => import('@/components/location-picker'), {
   ssr: false,
-  loading: () => (
-    <div className="h-56 w-full animate-pulse rounded-xl bg-surface-2 border border-border-strong" />
-  ),
+  loading: () => <MapSkeleton className="h-56 rounded-xl border border-border-strong" />,
 });
 
 interface FormValues {

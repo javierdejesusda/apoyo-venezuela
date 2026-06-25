@@ -1,20 +1,27 @@
 import { HomeExplorer } from '@/components/home-explorer';
 import { HomeHero } from '@/components/home-hero';
 import { MissingPersonsLink } from '@/components/missing-persons-link';
-import { availableStateOptions, globalStats } from '@/lib/data/selectors';
+import { loadHomeData } from '@/lib/data/home';
 import { getStore } from '@/lib/data/store';
 
 export default async function HomePage() {
-  const store = getStore();
-  const locations = await store.listLocations();
-  const stats = globalStats(locations);
-  const states = availableStateOptions(locations);
+  const { locations, stats, states, loadFailed } = await loadHomeData(getStore());
 
   return (
     <div className="space-y-6">
       <HomeHero stats={stats} />
 
       <MissingPersonsLink variant="card" />
+
+      {loadFailed && (
+        <p
+          role="status"
+          className="rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-ink-soft"
+        >
+          No pudimos cargar las zonas en este momento. La información de emergencia sigue
+          disponible; intenta refrescar en unos minutos.
+        </p>
+      )}
 
       <HomeExplorer locations={locations} states={states} />
     </div>

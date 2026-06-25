@@ -3,11 +3,13 @@ import { notFound } from 'next/navigation';
 import { ChevronLeft, MapPin, PhoneCall } from 'lucide-react';
 
 import { getStore } from '@/lib/data/store';
+import { loadZone } from '@/lib/data/zone';
 import { statusMeta, toneClasses } from '@/lib/status';
 import { formatRelativeTime, telHref } from '@/lib/utils';
 import { StatusBadge } from '@/components/status-badges';
 import { AddNeedForm } from '@/components/add-need-form';
 import { NeedList } from '@/components/need-list';
+import { ZonePhoto } from '@/components/zone-photo';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -15,13 +17,38 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<{ title: string }> {
   const { id } = await params;
-  const location = await getStore().getLocation(id);
+  const { location } = await loadZone(getStore(), id);
   return { title: location?.nombre ?? 'Zona' };
 }
 
 export default async function ZonaPage({ params }: Props) {
   const { id } = await params;
-  const location = await getStore().getLocation(id);
+  const { location, loadFailed } = await loadZone(getStore(), id);
+
+  const backLink = (
+    <Link
+      href="/"
+      className="mb-4 inline-flex min-h-[44px] items-center gap-1 text-sm text-ink-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded-lg px-1"
+    >
+      <ChevronLeft className="h-4 w-4" aria-hidden />
+      Volver al mapa
+    </Link>
+  );
+
+  if (loadFailed) {
+    return (
+      <div className="mx-auto max-w-2xl pb-24 pt-4">
+        {backLink}
+        <p
+          role="status"
+          className="rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-ink-soft"
+        >
+          No pudimos cargar esta zona en este momento. Intenta refrescar en unos minutos.
+        </p>
+      </div>
+    );
+  }
+
   if (!location) notFound();
 
   const placeParts = [location.zona, location.ciudad, location.estado].filter(Boolean);
@@ -36,13 +63,7 @@ export default async function ZonaPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl pb-24 pt-4">
-      <Link
-        href="/"
-        className="mb-4 inline-flex min-h-[44px] items-center gap-1 text-sm text-ink-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded-lg px-1"
-      >
-        <ChevronLeft className="h-4 w-4" aria-hidden />
-        Volver al mapa
-      </Link>
+      {backLink}
 
       <div className="space-y-4">
         <div className={`space-y-2 border-l-4 pl-4 ${tones.border}`}>
@@ -93,13 +114,10 @@ export default async function ZonaPage({ params }: Props) {
         {fotos.length > 0 && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {fotos.map((foto, index) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <ZonePhoto
                 key={`${foto}-${index}`}
                 src={foto}
                 alt={`Foto de la zona ${location.nombre}`}
-                loading="lazy"
-                className="img-outline aspect-square w-full rounded-xl object-cover"
               />
             ))}
           </div>

@@ -4,8 +4,9 @@ import { Bricolage_Grotesque, IBM_Plex_Sans } from 'next/font/google';
 import './globals.css';
 
 import { BottomNav } from '@/components/bottom-nav';
+import { ConnectionStatus } from '@/components/connection-status';
 import { DemoBanner } from '@/components/demo-banner';
-import { RealtimeRefresher } from '@/components/realtime-refresher';
+import { ServiceWorkerRegister } from '@/components/service-worker-register';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -95,11 +96,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="flex min-h-full flex-col bg-canvas text-ink antialiased">
         <ThemeProvider>
           <DemoBanner show={isDemoMode()} />
+          <ConnectionStatus />
           <SiteHeader />
           <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-4 md:pb-12">{children}</main>
           <SiteFooter />
           <BottomNav />
-          <RealtimeRefresher />
+          <ServiceWorkerRegister />
         </ThemeProvider>
       </body>
     </html>

@@ -6,18 +6,14 @@ import dynamic from 'next/dynamic';
 
 import { Filters } from '@/components/filters';
 import { LocationList } from '@/components/location-list';
-import { SeismicLoader } from '@/components/ui/seismic-loader';
+import { MapSkeleton } from '@/components/ui/map-skeleton';
 import { ViewToggle, type HomeView } from '@/components/view-toggle';
 import { applyFilters, sortLocations } from '@/lib/data/selectors';
 import type { LocationFilters, LocationWithNeeds } from '@/lib/data/types';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
-  loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-surface-2">
-      <SeismicLoader label="Cargando mapa…" />
-    </div>
-  ),
+  loading: () => <MapSkeleton />,
 });
 
 /** Client shell that filters zones and switches between the map and the list. */
