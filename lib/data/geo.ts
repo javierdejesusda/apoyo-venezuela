@@ -50,14 +50,13 @@ export function stateCentroid(
 }
 
 /**
- * Resolves the best available map coordinates for a location, plus the
- * uncertainty radius the map should draw around them.
+ * Resolves the map coordinates for a location, plus the uncertainty radius the
+ * map should draw around them.
  *
  * - With lat/lng present: returns them; approximate is true only when the saved
  *   accuracyM meets APPROXIMATE_THRESHOLD_M. accuracyM defaults to 0 (exact).
- * - With either coordinate null: falls back to the estado centroid, approximate,
- *   with accuracyM = STATE_FALLBACK_RADIUS_M.
- * - With no coords and an unknown estado: returns null.
+ * - With either coordinate null: returns null. A zone without an explicit point
+ *   is shown only in the list, never placed on the map at a coarse centroid.
  */
 export function resolveMapCoords(loc: {
   lat: number | null;
@@ -80,13 +79,7 @@ export function resolveMapCoords(loc: {
       accuracyM: loc.accuracyM ?? 0,
     };
   }
-  const centroid = stateCentroid(loc.estado);
-  if (centroid !== null) {
-    return {
-      ...centroid,
-      approximate: true,
-      accuracyM: STATE_FALLBACK_RADIUS_M,
-    };
-  }
+  // Without explicit coordinates a zone is list-only: it must not be placed on
+  // the map at a coarse state centroid. Callers skip locations with no point.
   return null;
 }

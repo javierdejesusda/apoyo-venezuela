@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 export type HomeView = 'mapa' | 'lista';
 
 const OPTIONS = [
-  { value: 'mapa', label: 'Mapa', icon: MapIcon },
   { value: 'lista', label: 'Lista', icon: List },
+  { value: 'mapa', label: 'Mapa', icon: MapIcon },
 ] as const;
 
 /** Segmented control to switch the home explorer between map and list. */

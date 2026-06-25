@@ -84,6 +84,15 @@ function toNeed(r: NeedRow): NeedRecord {
   };
 }
 
+/**
+ * True when an insert failed only because the `accuracy_m` column is absent
+ * (the accuracy migration has not been applied to this database yet).
+ */
+function isMissingAccuracyColumn(error: unknown): boolean {
+  const message = (error as { message?: string } | null)?.message ?? '';
+  return /accuracy_m/i.test(message);
+}
+
 export function createSupabaseStore(url: string, key: string): DataStore {
   const client: SupabaseClient = createClient(url, key, {
     auth: { persistSession: false },
@@ -126,24 +135,36 @@ export function createSupabaseStore(url: string, key: string): DataStore {
     },
 
     async createLocation(input: CreateLocationInput) {
-      const { data, error } = await client
+      const row = {
+        nombre: input.nombre,
+        estado: input.estado,
+        ciudad: input.ciudad,
+        zona: input.zona ?? null,
+        lat: input.lat ?? null,
+        lng: input.lng ?? null,
+        status: input.status,
+        descripcion: input.descripcion ?? null,
+        contacto_nombre: input.contactoNombre ?? null,
+        contacto_telefono: input.contactoTelefono ?? null,
+        fotos: input.fotos ?? [],
+      };
+
+      let { data, error } = await client
         .from('locations')
-        .insert({
-          nombre: input.nombre,
-          estado: input.estado,
-          ciudad: input.ciudad,
-          zona: input.zona ?? null,
-          lat: input.lat ?? null,
-          lng: input.lng ?? null,
-          accuracy_m: input.accuracyM ?? null,
-          status: input.status,
-          descripcion: input.descripcion ?? null,
-          contacto_nombre: input.contactoNombre ?? null,
-          contacto_telefono: input.contactoTelefono ?? null,
-          fotos: input.fotos ?? [],
-        })
+        .insert({ ...row, accuracy_m: input.accuracyM ?? null })
         .select('*')
         .single();
+
+      // Databases that have not run the accuracy_m migration yet reject that
+      // column; retry without it so reports still save instead of failing.
+      if (error && isMissingAccuracyColumn(error)) {
+        ({ data, error } = await client
+          .from('locations')
+          .insert(row)
+          .select('*')
+          .single());
+      }
+
       if (error) throw error;
       return toLocation(data as LocationRow);
     },

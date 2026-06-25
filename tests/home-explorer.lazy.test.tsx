@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { HomeExplorer } from '@/components/home-explorer';
@@ -24,12 +24,16 @@ function loc(over: Partial<LocationWithNeeds> = {}): LocationWithNeeds {
 }
 
 describe('HomeExplorer critical-path JS', () => {
-  it('renders the instant map skeleton, not the heavy Leaflet map, on first paint', () => {
+  it('defaults to the list and lazy-loads the map skeleton only when the map opens', () => {
     const { container } = render(<HomeExplorer locations={[loc()]} states={['Carabobo']} />);
 
-    // The cheap skeleton paints synchronously.
+    // The list is the default view, so no map skeleton paints on first load.
+    expect(screen.queryByTestId('map-skeleton')).toBeNull();
+
+    // Switching to the map tab paints the cheap skeleton synchronously...
+    fireEvent.click(screen.getByRole('tab', { name: 'Mapa' }));
     expect(screen.getByTestId('map-skeleton')).toBeInTheDocument();
-    // next/dynamic(ssr:false) defers the heavy chunk, so Leaflet is not rendered yet.
+    // ...while next/dynamic(ssr:false) still defers the heavy Leaflet chunk.
     expect(container.querySelector('.leaflet-container')).toBeNull();
   });
 });

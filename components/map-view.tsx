@@ -324,8 +324,6 @@ export default function MapView({
           // Built from the same `valid` array in this render, so always present.
           const icon = iconCache.get(loc.id) as L.DivIcon;
           const fotoCount = loc.fotos?.length ?? 0;
-          // No saved coords means we placed the pin on the state centroid.
-          const fromCentroid = loc.lat === null || loc.lng === null;
 
           return (
             <Marker
@@ -381,9 +379,7 @@ export default function MapView({
 
                   {approximate && (
                     <p className="text-ink-faint text-xs mb-1.5">
-                      {fromCentroid
-                        ? 'Ubicación aproximada por estado'
-                        : 'Ubicación aproximada (área)'}
+                      Ubicación aproximada (área)
                     </p>
                   )}
 

@@ -8,14 +8,12 @@ import {
   Crosshair,
   ImagePlus,
   MapPin,
-  Search,
   Send,
   X,
 } from 'lucide-react';
 
 import { createLocationAction } from '@/app/actions';
-import { geocodeForwardAction, geocodeReverseAction } from '@/app/geocode-actions';
-import { AddressAutocomplete } from '@/components/address-autocomplete';
+import { geocodeReverseAction } from '@/app/geocode-actions';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Label, Select, Textarea } from '@/components/ui/form';
 import { MapSkeleton } from '@/components/ui/map-skeleton';
@@ -27,7 +25,7 @@ import {
   MAX_FOTOS,
   VENEZUELA_STATES,
 } from '@/lib/data/types';
-import { APPROXIMATE_THRESHOLD_M, type GeoSuggestion } from '@/lib/geocoding/types';
+import { APPROXIMATE_THRESHOLD_M } from '@/lib/geocoding/types';
 import { statusMeta } from '@/lib/status';
 import { useRevokeObjectUrlsOnUnmount } from '@/lib/use-revoke-object-urls';
 
@@ -114,8 +112,7 @@ export default function ReportLocationForm(): React.JSX.Element {
     lng: null,
   });
   const [accuracyM, setAccuracyM] = useState<number | null>(null);
-  const [searchText, setSearchText] = useState('');
-  // Latest-wins guard for in-flight reverse lookups (mirrors the combobox).
+  // Latest-wins guard for in-flight reverse lookups.
   const reverseSeqRef = useRef(0);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -149,21 +146,6 @@ export default function ReportLocationForm(): React.JSX.Element {
       if (!prev.estado && isVenezuelanState(reverse.estado)) next.estado = reverse.estado;
       if (!prev.ciudad && reverse.ciudad) next.ciudad = reverse.ciudad;
       if (!prev.zona && reverse.zona) next.zona = reverse.zona;
-      return next;
-    });
-  }
-
-  function handleSuggestionSelect(suggestion: GeoSuggestion): void {
-    // Invalidate any reverse lookup still in flight from a prior pin drop.
-    reverseSeqRef.current++;
-    setCoords({ lat: suggestion.lat, lng: suggestion.lng });
-    setAccuracyM(suggestion.accuracyM);
-    // searchText is set by the combobox via onValueChange(primary) on select.
-    setValues((prev) => {
-      const next = { ...prev };
-      if (isVenezuelanState(suggestion.estado)) next.estado = suggestion.estado;
-      if (suggestion.ciudad) next.ciudad = suggestion.ciudad;
-      if (suggestion.zona) next.zona = suggestion.zona;
       return next;
     });
   }
@@ -338,21 +320,11 @@ export default function ReportLocationForm(): React.JSX.Element {
         <div>
           <h2 className="text-sm font-semibold text-ink">Ubicación</h2>
           <p className="mt-1 text-xs text-ink-faint">
-            Busca una zona o ciudad para acercar el mapa, luego toca o arrastra el pin
-            en el punto exacto. La búsqueda puede no encontrar calles detalladas en Venezuela.
+            Indica el estado, la ciudad y la zona. Si puedes, toca o arrastra el pin
+            en el mapa para marcar el punto exacto. Si no marcas un punto, la zona se
+            mostrará solo en la lista, con la información de ubicación que escribas.
           </p>
         </div>
-
-        <AddressAutocomplete
-          value={searchText}
-          onValueChange={setSearchText}
-          onSelect={handleSuggestionSelect}
-          onSearch={geocodeForwardAction}
-          label="Buscar zona o ciudad"
-          placeholder="Ej. San Bernardino, Caracas"
-          helpText="Solo para acercar el mapa y rellenar estado, ciudad y zona. El punto exacto lo marcas tocando el mapa."
-          disabled={isPending}
-        />
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -390,8 +362,8 @@ export default function ReportLocationForm(): React.JSX.Element {
             )
           ) : (
             <p className="flex items-center gap-1.5 text-xs text-ink-faint">
-              <Search size={14} aria-hidden="true" />
-              Busca una dirección arriba o toca el mapa para marcar el punto.
+              <MapPin size={14} aria-hidden="true" />
+              Opcional: toca el mapa para marcar el punto exacto.
             </p>
           )}
 

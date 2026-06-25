@@ -48,24 +48,19 @@ describe('resolveMapCoords', () => {
     expect(result).toEqual({ lat: 10.5, lng: -66.9, approximate: false, accuracyM: 0 });
   });
 
-  it('falls back to estado centroid with approximate=true when lat is null', () => {
+  it('returns null when both lat and lng are null, even for a known estado', () => {
     const result = resolveMapCoords({ lat: null, lng: null, estado: 'Distrito Capital' });
-    expect(result).not.toBeNull();
-    expect(result?.approximate).toBe(true);
-    expect(result?.lat).toBeCloseTo(10.4806);
-    expect(result?.lng).toBeCloseTo(-66.9036);
+    expect(result).toBeNull();
   });
 
-  it('falls back to estado centroid when only lat is null', () => {
+  it('returns null when only lat is null', () => {
     const result = resolveMapCoords({ lat: null, lng: -66.9, estado: 'Miranda' });
-    expect(result).not.toBeNull();
-    expect(result?.approximate).toBe(true);
+    expect(result).toBeNull();
   });
 
-  it('falls back to estado centroid when only lng is null', () => {
+  it('returns null when only lng is null', () => {
     const result = resolveMapCoords({ lat: 10.3, lng: null, estado: 'Miranda' });
-    expect(result).not.toBeNull();
-    expect(result?.approximate).toBe(true);
+    expect(result).toBeNull();
   });
 
   it('returns null when coords are null and estado is unknown', () => {
@@ -117,14 +112,13 @@ describe('resolveMapCoords accuracy', () => {
     expect(result?.accuracyM).toBe(0);
   });
 
-  it('uses STATE_FALLBACK_RADIUS_M on the estado centroid fallback', () => {
+  it('keeps the fallback radius constant and returns null without coords', () => {
     expect(STATE_FALLBACK_RADIUS_M).toBe(60000);
     const result = resolveMapCoords({ lat: null, lng: null, estado: 'Miranda' });
-    expect(result?.approximate).toBe(true);
-    expect(result?.accuracyM).toBe(STATE_FALLBACK_RADIUS_M);
+    expect(result).toBeNull();
   });
 
-  it('returns null on the fallback path when the estado is unknown', () => {
+  it('returns null without coords even when an accuracy is provided', () => {
     const result = resolveMapCoords({
       lat: null,
       lng: null,
