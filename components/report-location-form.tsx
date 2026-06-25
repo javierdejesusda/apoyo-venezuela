@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState, useTransition } from 'react';
+import React, { useState, useTransition } from 'react';
 import { ImagePlus, MapPin, Send, X } from 'lucide-react';
 
 import { createLocationAction } from '@/app/actions';
@@ -11,6 +11,7 @@ import { Field, Input, Label, Select, Textarea } from '@/components/ui/form';
 import { getBrowserSupabase } from '@/lib/data/supabase-browser';
 import { EMERGENCY_STATUSES, MAX_FOTOS, VENEZUELA_STATES } from '@/lib/data/types';
 import { statusMeta } from '@/lib/status';
+import { useRevokeObjectUrlsOnUnmount } from '@/lib/use-revoke-object-urls';
 
 const MAX_FOTO_BYTES = 5 * 1024 * 1024;
 
@@ -92,14 +93,7 @@ export default function ReportLocationForm(): React.JSX.Element {
   const [fotoError, setFotoError] = useState<string | null>(null);
 
   // Revoke any object URLs still held when the form unmounts to avoid leaks.
-  const fotosRef = useRef(fotos);
-  fotosRef.current = fotos;
-  useEffect(
-    () => () => {
-      fotosRef.current.forEach((foto) => URL.revokeObjectURL(foto.previewUrl));
-    },
-    [],
-  );
+  useRevokeObjectUrlsOnUnmount(fotos.map((foto) => foto.previewUrl));
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
