@@ -29,5 +29,5 @@ Initial public release.
 - PWA support with light and dark mode and a mobile-first design.
 - SEO and Open Graph metadata.
 
-[Unreleased]: https://github.com/javierdejesusda/ayuda-venezuela/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/javierdejesusda/ayuda-venezuela/releases/tag/v0.1.0
+[Unreleased]: https://github.com/javierdejesusda/apoyo-venezuela/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/javierdejesusda/apoyo-venezuela/releases/tag/v0.1.0

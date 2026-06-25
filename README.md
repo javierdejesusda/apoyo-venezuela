@@ -5,7 +5,7 @@
 **Coordinate earthquake relief in Venezuela: map affected zones, post needs, and find verified emergency numbers.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/javierdejesusda/ayuda-venezuela/actions/workflows/ci.yml/badge.svg)](https://github.com/javierdejesusda/ayuda-venezuela/actions/workflows/ci.yml)
+[![CI](https://github.com/javierdejesusda/apoyo-venezuela/actions/workflows/ci.yml/badge.svg)](https://github.com/javierdejesusda/apoyo-venezuela/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)

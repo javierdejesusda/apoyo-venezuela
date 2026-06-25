@@ -5,7 +5,7 @@ Thank you for being here. Apoyo Venezuela is a non-partisan citizen initiative b
 The single most valuable contribution you can make is an accurate emergency-data correction: a phone number, a shelter, or an aid organization that is wrong, outdated, or missing. Because people act on this data in real emergencies, every data change MUST include a credible public source. No source, no merge. This rule is not negotiable.
 
 Live site: https://apoyovenezuela.com
-Repository: https://github.com/javierdejesusda/ayuda-venezuela
+Repository: https://github.com/javierdejesusda/apoyo-venezuela
 Looking for missing persons? See the sister project: https://desaparecidosterremotovenezuela.com
 
 ## Ways to contribute
@@ -34,8 +34,8 @@ Looking for missing persons? See the sister project: https://desaparecidosterrem
 ### Steps
 
 ```bash
-git clone https://github.com/javierdejesusda/ayuda-venezuela.git
-cd ayuda-venezuela
+git clone https://github.com/javierdejesusda/apoyo-venezuela.git
+cd apoyo-venezuela
 npm install
 npm run dev
 ```

@@ -18,7 +18,7 @@ Please report security issues privately. Do not open a public issue, and do not 
 
 Preferred channel:
 
-1. Go to the repository Security tab on GitHub (https://github.com/javierdejesusda/ayuda-venezuela).
+1. Go to the repository Security tab on GitHub (https://github.com/javierdejesusda/apoyo-venezuela).
 2. Choose "Report a vulnerability" to open a private advisory.
 
 Alternative channel:
