@@ -515,7 +515,7 @@ export default function ReportLocationForm(): React.JSX.Element {
           name="contactoTelefono"
           value={values.contactoTelefono}
           onChange={handleChange}
-          placeholder="Ej. 0212-555-0101"
+          placeholder="Ej. 0414-1234567 o +58 414-1234567"
           maxLength={40}
           inputMode="tel"
           autoComplete="tel"
