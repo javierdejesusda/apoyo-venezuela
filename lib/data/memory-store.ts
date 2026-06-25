@@ -9,12 +9,15 @@
  */
 import { createId } from '@/lib/utils';
 
+import { DuplicateFundraiserError } from './fundraiser-url';
 import { applyFilters, sortLocations, withSummary } from './selectors';
 import { SEED } from './seed';
 import type {
+  CreateFundraiserInput,
   CreateLocationInput,
   CreateNeedInput,
   EmergencyStatus,
+  Fundraiser,
   LocationFilters,
   LocationRecord,
   LocationWithNeeds,
@@ -26,6 +29,7 @@ import type { DataStore } from './store';
 export interface MemorySeed {
   locations: LocationRecord[];
   needs: NeedRecord[];
+  fundraisers?: Fundraiser[];
 }
 
 export function createMemoryStore(initial?: MemorySeed): DataStore {
@@ -33,6 +37,9 @@ export function createMemoryStore(initial?: MemorySeed): DataStore {
     ? [...initial.locations]
     : [...SEED.locations];
   const needs: NeedRecord[] = initial ? [...initial.needs] : [...SEED.needs];
+  const fundraisers: Fundraiser[] = initial
+    ? [...(initial.fundraisers ?? [])]
+    : [...SEED.fundraisers];
 
   const compose = (): LocationWithNeeds[] =>
     locations.map((l) => withSummary(l, needs));
@@ -107,6 +114,30 @@ export function createMemoryStore(initial?: MemorySeed): DataStore {
       need.status = status;
       need.updatedAt = now();
       return need;
+    },
+
+    async listFundraisers() {
+      return [...fundraisers].sort((a, b) =>
+        a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
+      );
+    },
+
+    async createFundraiser(input: CreateFundraiserInput) {
+      if (fundraisers.some((f) => f.url === input.url)) {
+        throw new DuplicateFundraiserError(input.url);
+      }
+      const ts = now();
+      const record: Fundraiser = {
+        id: createId('recaudacion'),
+        titulo: input.titulo,
+        descripcion: input.descripcion,
+        url: input.url,
+        organizador: input.organizador,
+        createdAt: ts,
+        updatedAt: ts,
+      };
+      fundraisers.unshift(record);
+      return record;
     },
   };
 }

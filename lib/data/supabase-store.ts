@@ -5,11 +5,14 @@
  */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+import { DuplicateFundraiserError } from './fundraiser-url';
 import { applyFilters, sortLocations, withSummary } from './selectors';
 import type {
+  CreateFundraiserInput,
   CreateLocationInput,
   CreateNeedInput,
   EmergencyStatus,
+  Fundraiser,
   LocationFilters,
   LocationRecord,
   NeedCategory,
@@ -18,6 +21,9 @@ import type {
   Urgency,
 } from './types';
 import type { DataStore } from './store';
+
+/** Postgres unique-violation SQLSTATE, raised by the UNIQUE(url) constraint. */
+const UNIQUE_VIOLATION = '23505';
 
 interface LocationRow {
   id: string;
@@ -48,6 +54,28 @@ interface NeedRow {
   status: string;
   created_at: string;
   updated_at: string;
+}
+
+interface FundraiserRow {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  url: string;
+  organizador: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+function toFundraiser(r: FundraiserRow): Fundraiser {
+  return {
+    id: r.id,
+    titulo: r.titulo,
+    descripcion: r.descripcion,
+    url: r.url,
+    organizador: r.organizador ?? undefined,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  };
 }
 
 export function toLocation(r: LocationRow): LocationRecord {
@@ -210,6 +238,35 @@ export function createSupabaseStore(url: string, key: string): DataStore {
         .maybeSingle();
       if (error) throw error;
       return data ? toNeed(data as NeedRow) : null;
+    },
+
+    async listFundraisers() {
+      const { data, error } = await client
+        .from('fundraisers')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data as FundraiserRow[]).map(toFundraiser);
+    },
+
+    async createFundraiser(input: CreateFundraiserInput) {
+      const { data, error } = await client
+        .from('fundraisers')
+        .insert({
+          titulo: input.titulo,
+          descripcion: input.descripcion,
+          url: input.url,
+          organizador: input.organizador ?? null,
+        })
+        .select('*')
+        .single();
+      if (error) {
+        if (error.code === UNIQUE_VIOLATION) {
+          throw new DuplicateFundraiserError(input.url);
+        }
+        throw error;
+      }
+      return toFundraiser(data as FundraiserRow);
     },
   };
 }

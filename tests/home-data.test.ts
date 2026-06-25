@@ -35,6 +35,10 @@ function stubStore(listLocations: () => Promise<LocationWithNeeds[]>): DataStore
       throw new Error('not implemented');
     },
     updateNeedStatus: async () => null,
+    listFundraisers: async () => [],
+    createFundraiser: async () => {
+      throw new Error('not implemented');
+    },
   };
 }
 

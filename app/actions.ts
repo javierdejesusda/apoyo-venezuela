@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import type { z } from 'zod';
 
+import { DuplicateFundraiserError } from '@/lib/data/fundraiser-url';
 import {
+  createFundraiserSchema,
   createLocationSchema,
   createNeedSchema,
   updateLocationStatusSchema,
@@ -41,6 +43,33 @@ export async function createLocationAction(
     return { ok: true, data: { id: location.id } };
   } catch {
     return { ok: false, error: 'No se pudo guardar la zona. Intenta de nuevo.' };
+  }
+}
+
+export async function createFundraiserAction(
+  input: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = createFundraiserSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: 'Revisa los datos del formulario.',
+      fieldErrors: fieldErrors(parsed.error),
+    };
+  }
+  try {
+    const fundraiser = await getStore().createFundraiser(parsed.data);
+    revalidatePath('/recaudaciones');
+    return { ok: true, data: { id: fundraiser.id } };
+  } catch (err) {
+    if (err instanceof DuplicateFundraiserError) {
+      return {
+        ok: false,
+        error: 'Revisa los datos del formulario.',
+        fieldErrors: { url: 'Esta recaudacion ya esta publicada.' },
+      };
+    }
+    return { ok: false, error: 'No se pudo guardar la recaudacion. Intenta de nuevo.' };
   }
 }
 

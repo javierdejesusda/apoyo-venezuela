@@ -6,9 +6,11 @@
 import { memoryStore } from './memory-store';
 import { createSupabaseStore } from './supabase-store';
 import type {
+  CreateFundraiserInput,
   CreateLocationInput,
   CreateNeedInput,
   EmergencyStatus,
+  Fundraiser,
   LocationFilters,
   LocationRecord,
   LocationWithNeeds,
@@ -28,6 +30,8 @@ export interface DataStore {
   ): Promise<LocationRecord | null>;
   createNeed(input: CreateNeedInput): Promise<NeedRecord>;
   updateNeedStatus(id: string, status: NeedStatus): Promise<NeedRecord | null>;
+  listFundraisers(): Promise<Fundraiser[]>;
+  createFundraiser(input: CreateFundraiserInput): Promise<Fundraiser>;
 }
 
 let cached: DataStore | null = null;

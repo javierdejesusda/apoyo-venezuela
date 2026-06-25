@@ -29,6 +29,9 @@ export function SiteFooter() {
           <Link href="/reportar" className="hover:text-ink">
             Reportar
           </Link>
+          <Link href="/recaudaciones" className="hover:text-ink">
+            Recaudaciones
+          </Link>
           <Link href="/telefonos" className="hover:text-ink">
             Teléfonos
           </Link>

@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 
+import { normalizeFundraiserUrl } from './fundraiser-url';
 import {
   EMERGENCY_STATUSES,
   MAX_FOTOS,
@@ -80,5 +81,34 @@ export const updateLocationStatusSchema = z.object({
   status: emergencyStatusSchema,
 });
 
+export const createFundraiserSchema = z.object({
+  titulo: z
+    .string()
+    .trim()
+    .min(3, 'El titulo es muy corto')
+    .max(120, 'El titulo es muy largo'),
+  descripcion: z
+    .string()
+    .trim()
+    .min(10, 'La descripcion es muy corta')
+    .max(500, 'La descripcion es muy larga'),
+  url: z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      const normalized = normalizeFundraiserUrl(value);
+      if (normalized === null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Debe ser un enlace de GoFundMe (gofundme.com).',
+        });
+        return z.NEVER;
+      }
+      return normalized;
+    }),
+  organizador: optionalText(80),
+});
+
 export type CreateLocationValues = z.infer<typeof createLocationSchema>;
 export type CreateNeedValues = z.infer<typeof createNeedSchema>;
+export type CreateFundraiserValues = z.infer<typeof createFundraiserSchema>;

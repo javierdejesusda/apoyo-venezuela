@@ -195,6 +195,25 @@ export interface StateContacts {
   contacts: EmergencyContact[];
 }
 
+/** A community-submitted GoFundMe fundraiser campaign. */
+export interface Fundraiser {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  /** Normalized GoFundMe link (https, no query/hash). Unique per campaign. */
+  url: string;
+  organizador?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFundraiserInput {
+  titulo: string;
+  descripcion: string;
+  url: string;
+  organizador?: string;
+}
+
 /** Generic resource entry (aid orgs, shelters, supply guidance, national lines). */
 export interface ResourceItem {
   name: string;

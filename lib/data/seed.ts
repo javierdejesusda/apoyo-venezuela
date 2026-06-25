@@ -3,7 +3,7 @@
  * areas hit by the June 24, 2026 earthquake, used only to make the UI usable
  * before a shared Supabase backend is connected. They are clearly example data.
  */
-import type { LocationRecord, NeedRecord } from './types';
+import type { Fundraiser, LocationRecord, NeedRecord } from './types';
 
 const QUAKE = '2026-06-24T22:10:00Z';
 const recent = '2026-06-25T11:30:00Z';
@@ -185,7 +185,24 @@ const needs: NeedRecord[] = [
   { id: 'lt-2', locationId: 'seed-losteques', categoria: 'otro', descripcion: 'Voluntarios para organizar el albergue', urgencia: 'baja', status: 'en_camino', createdAt: QUAKE, updatedAt: recent },
 ];
 
-export const SEED: { locations: LocationRecord[]; needs: NeedRecord[] } = {
+const fundraisers: Fundraiser[] = [
+  {
+    id: 'seed-recaudacion-terremoto',
+    titulo: 'Ayuda de emergencia para víctimas del terremoto en Venezuela',
+    descripcion:
+      'Campaña en GoFundMe para apoyar a las familias afectadas por el terremoto en Venezuela. Los aportes ayudan a cubrir alimentos, refugio temporal y atención médica.',
+    url: 'https://gofundme.com/f/emergency-relief-for-venezuela-earthquake-victims',
+    createdAt: QUAKE,
+    updatedAt: recent,
+  },
+];
+
+export const SEED: {
+  locations: LocationRecord[];
+  needs: NeedRecord[];
+  fundraisers: Fundraiser[];
+} = {
   locations,
   needs,
+  fundraisers,
 };

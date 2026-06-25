@@ -34,6 +34,10 @@ function stubStore(getLocation: DataStore['getLocation']): DataStore {
       throw new Error('not implemented');
     },
     updateNeedStatus: async () => null,
+    listFundraisers: async () => [],
+    createFundraiser: async () => {
+      throw new Error('not implemented');
+    },
   };
 }
 
