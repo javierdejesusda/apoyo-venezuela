@@ -23,19 +23,46 @@ const RIBBON: { key: keyof GlobalStats; label: string; tone: RibbonTone }[] = [
   { key: 'necesidadesAbiertas', label: 'Necesidades abiertas', tone: 'neutral' },
 ];
 
+/*
+ * Small red markers dispersed across the silhouette to evoke the affected zones.
+ * Positions are box-relative (within the square silhouette), so each dot tracks
+ * the landmass at any panel size. The first is the Yaracuy/Carabobo epicenter.
+ */
+const QUAKE_DOTS: { left: string; top: string; size: number; opacity: number }[] = [
+  { left: '22%', top: '37%', size: 7, opacity: 0.9 },
+  { left: '13%', top: '31%', size: 5, opacity: 0.7 },
+  { left: '34%', top: '34%', size: 5, opacity: 0.8 },
+  { left: '47%', top: '32%', size: 4, opacity: 0.6 },
+  { left: '60%', top: '36%', size: 5, opacity: 0.7 },
+  { left: '72%', top: '42%', size: 4, opacity: 0.55 },
+  { left: '32%', top: '54%', size: 4, opacity: 0.55 },
+  { left: '54%', top: '56%', size: 4, opacity: 0.5 },
+];
+
 /**
  * Faint Venezuela silhouette watermark anchored to the right of the panel, with
- * a single epicenter ring over the Yaracuy/Carabobo area. The ring reuses the
- * live-ping pattern, which the global prefers-reduced-motion rule freezes.
+ * several small red markers dispersed across the landmass. The markers live
+ * inside the silhouette's square box so they stay on the map at every size.
  */
 function HeroBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <VenezuelaSilhouette className="absolute -right-16 top-1/2 h-[150%] w-auto -translate-y-1/2 text-white/[0.06]" />
-      <span className="absolute left-[58%] top-[42%] flex h-2.5 w-2.5 items-center justify-center">
-        <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-danger" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-danger/80" />
-      </span>
+      <div className="absolute -right-16 top-1/2 aspect-square h-[150%] -translate-y-1/2">
+        <VenezuelaSilhouette className="h-full w-full text-white/[0.06]" />
+        {QUAKE_DOTS.map((dot, i) => (
+          <span
+            key={i}
+            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-danger"
+            style={{
+              left: dot.left,
+              top: dot.top,
+              width: dot.size,
+              height: dot.size,
+              opacity: dot.opacity,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
