@@ -7,6 +7,7 @@ import { Image as ImageIcon, LocateFixed } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 
+import { PersonasAtrapadasBadge } from '@/components/status-badges';
 import { useTheme } from '@/components/theme-provider';
 import { resolveMapCoords } from '@/lib/data/geo';
 import type { LocationWithNeeds } from '@/lib/data/types';
@@ -164,7 +165,7 @@ function GeolocationButton(): React.JSX.Element {
 }
 
 /**
- * Compact overlay listing all four statuses with color swatch + label.
+ * Compact overlay listing all five statuses with color swatch + label.
  * Below sm it collapses to an "Estado" pill so it never covers top-right pins;
  * at sm and up it stays open.
  */
@@ -381,6 +382,12 @@ export default function MapView({
                     <p className="text-ink-faint text-xs mb-1.5">
                       Ubicación aproximada (área)
                     </p>
+                  )}
+
+                  {loc.personas_atrapadas === 'si' && (
+                    <div className="mb-2">
+                      <PersonasAtrapadasBadge value={loc.personas_atrapadas} />
+                    </div>
                   )}
 
                   <a

@@ -98,4 +98,32 @@ describe('LocationCard', () => {
     expect(container.querySelector('img')).toBeNull();
     expect(screen.queryByText(/\bfotos?\b/)).toBeNull();
   });
+
+  it('shows the personas_atrapadas caveat when value is "si"', () => {
+    const { container } = render(
+      <LocationCard location={makeLocation({ personas_atrapadas: 'si' })} />,
+    );
+    expect(container.textContent).toContain('Reporte ciudadano sin verificar');
+  });
+
+  it('does not show the caveat when personas_atrapadas is "no"', () => {
+    const { container } = render(
+      <LocationCard location={makeLocation({ personas_atrapadas: 'no' })} />,
+    );
+    expect(container.textContent).not.toContain('Reporte ciudadano sin verificar');
+  });
+
+  it('does not show the caveat when personas_atrapadas is absent (treated as no_se)', () => {
+    const { container } = render(
+      <LocationCard location={makeLocation({ personas_atrapadas: undefined })} />,
+    );
+    expect(container.textContent).not.toContain('Reporte ciudadano sin verificar');
+  });
+
+  it('has no seismic-pulse class on a dano_grave card', () => {
+    const { container } = render(
+      <LocationCard location={makeLocation({ status: 'dano_grave' })} />,
+    );
+    expect(container.querySelector('.live-ping')).toBeNull();
+  });
 });

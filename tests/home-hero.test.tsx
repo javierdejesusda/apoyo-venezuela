@@ -30,9 +30,16 @@ describe('HomeHero', () => {
     ).toBe('/telefonos');
   });
 
-  it('shows every global stat in the semaphore ribbon', () => {
+  it('shows every global stat including damage counts in the semaphore ribbon', () => {
     render(<HomeHero stats={STATS} />);
-    for (const label of ['Zonas activas', 'Derrumbes', 'Necesidades urgentes', 'Necesidades abiertas']) {
+    for (const label of [
+      'Zonas activas',
+      'Derrumbes',
+      'Daño grave',
+      'Daño parcial',
+      'Necesidades urgentes',
+      'Necesidades abiertas',
+    ]) {
       expect(screen.getByText(label)).toBeTruthy();
     }
     expect(screen.getByText('3')).toBeTruthy();

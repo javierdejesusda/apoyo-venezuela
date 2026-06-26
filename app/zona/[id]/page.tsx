@@ -9,7 +9,7 @@ import { buildDirectionsLinks } from '@/lib/directions';
 import { statusMeta, toneClasses } from '@/lib/status';
 import { formatRelativeTime, telHref } from '@/lib/utils';
 import { SharePanel } from '@/components/share-panel';
-import { StatusBadge } from '@/components/status-badges';
+import { PersonasAtrapadasBadge, StatusBadge } from '@/components/status-badges';
 import { AddNeedForm } from '@/components/add-need-form';
 import { NeedList } from '@/components/need-list';
 import { ZonePhotoGallery } from '@/components/zone-photo-gallery';
@@ -112,6 +112,10 @@ export default async function ZonaPage({ params }: Props) {
               Actualizado {formatRelativeTime(location.updatedAt)}
             </span>
           </div>
+
+          {location.personas_atrapadas === 'si' && (
+            <PersonasAtrapadasBadge value={location.personas_atrapadas} />
+          )}
         </div>
 
         <SharePanel

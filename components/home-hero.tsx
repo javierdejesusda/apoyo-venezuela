@@ -7,11 +7,12 @@ import { VenezuelaSilhouette } from '@/components/ui/venezuela-silhouette';
 import type { GlobalStats } from '@/lib/data/selectors';
 import { cn } from '@/lib/utils';
 
-type RibbonTone = 'brand' | 'danger' | 'warning' | 'neutral';
+type RibbonTone = 'brand' | 'danger' | 'severe' | 'warning' | 'neutral';
 
 const DOT: Record<RibbonTone, string> = {
   brand: 'bg-brand-400',
   danger: 'bg-danger',
+  severe: 'bg-severe',
   warning: 'bg-warning',
   neutral: 'bg-hero-ink-faint',
 };
@@ -19,6 +20,8 @@ const DOT: Record<RibbonTone, string> = {
 const RIBBON: { key: keyof GlobalStats; label: string; tone: RibbonTone }[] = [
   { key: 'zonas', label: 'Zonas activas', tone: 'brand' },
   { key: 'derrumbes', label: 'Derrumbes', tone: 'danger' },
+  { key: 'danoGrave', label: 'Daño grave', tone: 'severe' },
+  { key: 'danoParcial', label: 'Daño parcial', tone: 'warning' },
   { key: 'urgentes', label: 'Necesidades urgentes', tone: 'warning' },
   { key: 'necesidadesAbiertas', label: 'Necesidades abiertas', tone: 'neutral' },
 ];
@@ -99,7 +102,7 @@ export function HomeHero({ stats }: { stats: GlobalStats }) {
         </div>
 
         <dl
-          className="animate-fade-up mt-7 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-hero-line pt-5 sm:grid-cols-4"
+          className="animate-fade-up mt-7 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-hero-line pt-5 sm:grid-cols-3 lg:grid-cols-6"
           style={{ animationDelay: '240ms' }}
         >
           {RIBBON.map((item) => (

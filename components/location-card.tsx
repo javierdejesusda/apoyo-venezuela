@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { ChevronRight, MapPin } from 'lucide-react';
 
-import { CategoryChip, StatusBadge } from '@/components/status-badges';
+import { CategoryChip, PersonasAtrapadasBadge, StatusBadge } from '@/components/status-badges';
 import { ZonePhoto } from '@/components/zone-photo';
 import type { LocationWithNeeds } from '@/lib/data/types';
 
@@ -51,6 +51,12 @@ export function LocationCard({ location }: { location: LocationWithNeeds }) {
           </div>
           <StatusBadge status={location.status} size="sm" />
         </div>
+
+        {location.personas_atrapadas === 'si' && (
+          <div className="mt-2">
+            <PersonasAtrapadasBadge value={location.personas_atrapadas} />
+          </div>
+        )}
 
         {location.descripcion && (
           <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{location.descripcion}</p>

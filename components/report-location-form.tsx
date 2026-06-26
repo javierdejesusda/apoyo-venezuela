@@ -23,6 +23,8 @@ import {
   EMERGENCY_STATUSES,
   MAX_FOTO_MB,
   MAX_FOTOS,
+  PERSONAS_ATRAPADAS,
+  PERSONAS_ATRAPADAS_DEFAULT,
   VENEZUELA_STATES,
 } from '@/lib/data/types';
 import { APPROXIMATE_THRESHOLD_M } from '@/lib/geocoding/types';
@@ -76,6 +78,7 @@ interface FormValues {
   ciudad: string;
   zona: string;
   status: string;
+  personas_atrapadas: string;
   descripcion: string;
   contactoNombre: string;
   contactoTelefono: string;
@@ -101,9 +104,16 @@ const INITIAL_VALUES: FormValues = {
   ciudad: '',
   zona: '',
   status: 'desconocido',
+  personas_atrapadas: PERSONAS_ATRAPADAS_DEFAULT,
   descripcion: '',
   contactoNombre: '',
   contactoTelefono: '',
+};
+
+const PERSONAS_ATRAPADAS_LABELS: Record<string, string> = {
+  si: 'Sí',
+  no: 'No',
+  no_se: 'No se sabe',
 };
 
 export default function ReportLocationForm(): React.JSX.Element {
@@ -274,6 +284,7 @@ export default function ReportLocationForm(): React.JSX.Element {
         ciudad: values.ciudad.trim(),
         zona: values.zona.trim() || undefined,
         status: values.status,
+        personas_atrapadas: values.personas_atrapadas,
         descripcion: values.descripcion.trim() || undefined,
         contactoNombre: values.contactoNombre.trim() || undefined,
         contactoTelefono: values.contactoTelefono.trim() || undefined,
@@ -471,6 +482,33 @@ export default function ReportLocationForm(): React.JSX.Element {
           ))}
         </Select>
       </Field>
+
+      {/* Personas atrapadas */}
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium text-ink">Personas atrapadas</legend>
+        <p className="text-xs text-ink-faint">
+          Indica si hay personas atrapadas según el reporte. Esta información no es verificada.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          {PERSONAS_ATRAPADAS.map((val) => (
+              <label
+                key={val}
+                className="inline-flex cursor-pointer items-center gap-2 text-sm text-ink-soft"
+              >
+                <input
+                  type="radio"
+                  name="personas_atrapadas"
+                  value={val}
+                  checked={values.personas_atrapadas === val}
+                  onChange={handleChange}
+                  disabled={isPending}
+                  className="accent-brand-600"
+                />
+                {PERSONAS_ATRAPADAS_LABELS[val]}
+              </label>
+            ))}
+        </div>
+      </fieldset>
 
       {/* Descripcion (opcional) */}
       <Field

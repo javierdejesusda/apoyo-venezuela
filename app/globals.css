@@ -36,6 +36,8 @@
   --color-warning: #e8930c;
   --color-success: #2e9e5b;
   --color-info: #2f72e8;
+  /* Severe tone: structural damage below collapse threshold (dano_grave). */
+  --color-severe: #c2410c;
 
   /* Layered elevation. New names so Tailwind's default shadow scale is intact. */
   --shadow-card: 0 1px 2px rgba(16, 21, 33, 0.04), 0 2px 6px rgba(16, 21, 33, 0.05);
@@ -66,6 +68,8 @@
   --tone-success-text: #1b7340;
   --tone-danger-text: #bd2f34;
   --tone-brand-text: #1f47df;
+  /* Severe: deep burnt-orange passes 4.5:1 on the bg-severe/10 tint. */
+  --tone-severe-text: #7c2d12;
 
   /*
    * Situation-board panel. Light is a bright instrument surface (dark ink on a
@@ -102,6 +106,8 @@
   --tone-success-text: #54c08a;
   --tone-danger-text: #ff8a8e;
   --tone-brand-text: #8fb0ff;
+  /* Severe on dark: a lighter orange passes 4.5:1 on the dark bg-severe/10 tint. */
+  --tone-severe-text: #fb923c;
 
   /* The signature navy command board (the light default flips to a white panel). */
   --hero-bg: #0d1320;
@@ -130,6 +136,7 @@
   --color-tone-success-text: var(--tone-success-text);
   --color-tone-danger-text: var(--tone-danger-text);
   --color-tone-brand-text: var(--tone-brand-text);
+  --color-tone-severe-text: var(--tone-severe-text);
 
   --color-hero: var(--hero-bg);
   --color-hero-ink: var(--hero-ink);
