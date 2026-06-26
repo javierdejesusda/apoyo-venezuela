@@ -11,6 +11,7 @@ import { FUENTE_REPORTE_LABELS } from '@/lib/data/types';
 import { resolveStatusMeta, toneClasses } from '@/lib/status';
 import { formatRelativeTime, telHref } from '@/lib/utils';
 import { SharePanel } from '@/components/share-panel';
+import { GroupedReportsNote } from '@/components/grouped-reports-note';
 import { PersonasAtrapadasBadge, StatusBadge } from '@/components/status-badges';
 import { ZoneTimeline } from '@/components/zone-timeline';
 import { AddNeedForm } from '@/components/add-need-form';
@@ -129,6 +130,8 @@ export default async function ZonaPage({ params }: Props) {
           {effectivePersonasAtrapadas === 'si' && (
             <PersonasAtrapadasBadge value={effectivePersonasAtrapadas} />
           )}
+
+          <GroupedReportsNote memberCount={cluster?.memberCount ?? 1} />
         </div>
 
         <SharePanel
