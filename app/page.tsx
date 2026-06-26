@@ -1,6 +1,7 @@
 import { HomeExplorer } from '@/components/home-explorer';
 import { HomeHero } from '@/components/home-hero';
 import { MissingPersonsLink } from '@/components/missing-persons-link';
+import { SharePanel } from '@/components/share-panel';
 import { loadHomeData } from '@/lib/data/home';
 import { getStore } from '@/lib/data/store';
 
@@ -18,6 +19,8 @@ export default async function HomePage() {
       <HomeHero stats={stats} />
 
       <MissingPersonsLink variant="card" />
+
+      <SharePanel kind="home" />
 
       {loadFailed && (
         <p

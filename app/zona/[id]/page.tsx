@@ -5,8 +5,10 @@ import { ChevronLeft, MapPin, PhoneCall } from 'lucide-react';
 
 import { getStore } from '@/lib/data/store';
 import { loadZone } from '@/lib/data/zone';
+import { buildDirectionsLinks } from '@/lib/directions';
 import { statusMeta, toneClasses } from '@/lib/status';
 import { formatRelativeTime, telHref } from '@/lib/utils';
+import { SharePanel } from '@/components/share-panel';
 import { StatusBadge } from '@/components/status-badges';
 import { AddNeedForm } from '@/components/add-need-form';
 import { NeedList } from '@/components/need-list';
@@ -71,6 +73,10 @@ export default async function ZonaPage({ params }: Props) {
   const tones = toneClasses(tone);
   const isDerrumbe = location.status === 'derrumbe';
   const fotos = location.fotos ?? [];
+  const dirs = buildDirectionsLinks(location.lat, location.lng);
+
+  const dirLinkClass =
+    'inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50';
 
   return (
     <div className="mx-auto max-w-2xl pb-24 pt-4">
@@ -107,6 +113,39 @@ export default async function ZonaPage({ params }: Props) {
             </span>
           </div>
         </div>
+
+        <SharePanel
+          kind="zone"
+          zone={{ id: location.id, nombre: location.nombre, ciudad: location.ciudad }}
+        />
+
+        {dirs && (
+          <section aria-labelledby="como-llegar-heading">
+            <h2 id="como-llegar-heading" className="mb-2 text-sm font-semibold text-ink">
+              Cómo llegar
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={dirs.google}
+                aria-label="Cómo llegar con Google Maps"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={dirLinkClass}
+              >
+                Google Maps
+              </a>
+              <a
+                href={dirs.osm}
+                aria-label="Cómo llegar con OpenStreetMap"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={dirLinkClass}
+              >
+                OpenStreetMap
+              </a>
+            </div>
+          </section>
+        )}
 
         {location.contactoTelefono && (
           <div className="flex flex-col items-start gap-1">
