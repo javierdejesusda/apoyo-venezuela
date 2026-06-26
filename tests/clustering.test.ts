@@ -42,8 +42,8 @@ describe('PROXIMITY_RADIUS_M', () => {
 });
 
 describe('NAME_SIMILARITY_THRESHOLD', () => {
-  it('is 0.3', () => {
-    expect(NAME_SIMILARITY_THRESHOLD).toBe(0.3);
+  it('is 0.45', () => {
+    expect(NAME_SIMILARITY_THRESHOLD).toBe(0.45);
   });
 });
 
@@ -129,6 +129,19 @@ describe('areClusterable', () => {
       { ...FAR_A, ...similarNombre },
       { ...FAR_B, ...similarNombre },
     )).toBe(false);
+  });
+
+  it('does NOT cluster a borderline name pair (0.3 <= similarity < 0.45) even when proximate', () => {
+    // 'Torre Galipan' vs 'Torre Petare' score ~0.43: these are distinct
+    // buildings that only share the generic "Torre " prefix. The old 0.3
+    // threshold merged them; the 0.45 threshold must keep them apart.
+    const a = { ...NEAR_A, nombre: 'Torre Galipan' };
+    const b = { ...NEAR_B, nombre: 'Torre Petare' };
+    const score = nameSimilarity(a.nombre, b.nombre);
+    expect(score).toBeGreaterThanOrEqual(0.3);
+    expect(score).toBeLessThan(0.45);
+    expect(isProximate(a, b)).toBe(true);
+    expect(areClusterable(a, b)).toBe(false);
   });
 
   it('returns false when null coords on first location', () => {

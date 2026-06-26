@@ -21,8 +21,12 @@ export const PROXIMITY_RADIUS_M = 150;
  * This constant documents the trigger intent; it is NOT the pg_trgm GUC value
  * (pg_trgm uses Jaccard with word tokenization, not Dice). The SQL trigger is
  * the authoritative clustering mechanism.
+ *
+ * Kept in sync with the 0.45 threshold in 20260630000000_zone_clustering.sql.
+ * Raised from 0.3 to 0.45 to stop merging distinct buildings that only share a
+ * generic prefix (e.g. "Torre Galipan" vs "Torre Petare").
  */
-export const NAME_SIMILARITY_THRESHOLD = 0.3;
+export const NAME_SIMILARITY_THRESHOLD = 0.45;
 
 /** Earth's mean radius in meters, used by the haversine formula. */
 const EARTH_R_M = 6_371_000;
