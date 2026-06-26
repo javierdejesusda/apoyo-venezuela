@@ -21,6 +21,8 @@ import { getBrowserSupabase } from '@/lib/data/supabase-browser';
 import { validateFotoFile } from '@/lib/data/foto-validation';
 import {
   EMERGENCY_STATUSES,
+  FUENTE_REPORTE,
+  FUENTE_REPORTE_LABELS,
   MAX_FOTO_MB,
   MAX_FOTOS,
   PERSONAS_ATRAPADAS,
@@ -79,6 +81,8 @@ interface FormValues {
   zona: string;
   status: string;
   personas_atrapadas: string;
+  fuente_reporte: string;
+  tipo_construccion: string;
   descripcion: string;
   contactoNombre: string;
   contactoTelefono: string;
@@ -105,6 +109,8 @@ const INITIAL_VALUES: FormValues = {
   zona: '',
   status: 'desconocido',
   personas_atrapadas: PERSONAS_ATRAPADAS_DEFAULT,
+  fuente_reporte: '',
+  tipo_construccion: '',
   descripcion: '',
   contactoNombre: '',
   contactoTelefono: '',
@@ -285,6 +291,8 @@ export default function ReportLocationForm(): React.JSX.Element {
         zona: values.zona.trim() || undefined,
         status: values.status,
         personas_atrapadas: values.personas_atrapadas,
+        fuente_reporte: values.fuente_reporte || undefined,
+        tipo_construccion: values.tipo_construccion.trim() || undefined,
         descripcion: values.descripcion.trim() || undefined,
         contactoNombre: values.contactoNombre.trim() || undefined,
         contactoTelefono: values.contactoTelefono.trim() || undefined,
@@ -509,6 +517,45 @@ export default function ReportLocationForm(): React.JSX.Element {
             ))}
         </div>
       </fieldset>
+
+      {/* Fuente del reporte (opcional) */}
+      <Field
+        label="Fuente del reporte"
+        htmlFor="fuente_reporte"
+        hint="Opcional. ¿Cómo se supo de esta situación?"
+      >
+        <Select
+          id="fuente_reporte"
+          name="fuente_reporte"
+          value={values.fuente_reporte}
+          onChange={handleChange}
+          disabled={isPending}
+        >
+          <option value="">Selecciona una fuente</option>
+          {FUENTE_REPORTE.map((val) => (
+            <option key={val} value={val}>
+              {FUENTE_REPORTE_LABELS[val]}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
+      {/* Tipo de construcción (opcional) */}
+      <Field
+        label="Tipo de construcción"
+        htmlFor="tipo_construccion"
+        hint="Opcional. Indica el tipo de estructura afectada."
+      >
+        <Input
+          id="tipo_construccion"
+          name="tipo_construccion"
+          value={values.tipo_construccion}
+          onChange={handleChange}
+          placeholder="Ej: edificio de concreto, casa"
+          maxLength={200}
+          disabled={isPending}
+        />
+      </Field>
 
       {/* Descripcion (opcional) */}
       <Field

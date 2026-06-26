@@ -6,6 +6,7 @@ import { ChevronLeft, MapPin, PhoneCall } from 'lucide-react';
 import { getStore } from '@/lib/data/store';
 import { loadZone } from '@/lib/data/zone';
 import { buildDirectionsLinks } from '@/lib/directions';
+import { FUENTE_REPORTE_LABELS } from '@/lib/data/types';
 import { statusMeta, toneClasses } from '@/lib/status';
 import { formatRelativeTime, telHref } from '@/lib/utils';
 import { SharePanel } from '@/components/share-panel';
@@ -166,6 +167,23 @@ export default async function ZonaPage({ params }: Props) {
 
         {location.descripcion && (
           <p className="text-sm leading-relaxed text-ink-soft">{location.descripcion}</p>
+        )}
+
+        {(location.fuente_reporte || location.tipo_construccion) && (
+          <dl className="space-y-1 text-sm text-ink-soft">
+            {location.fuente_reporte && (
+              <div className="flex gap-2">
+                <dt className="font-medium text-ink">Fuente del reporte:</dt>
+                <dd>{FUENTE_REPORTE_LABELS[location.fuente_reporte]}</dd>
+              </div>
+            )}
+            {location.tipo_construccion && (
+              <div className="flex gap-2">
+                <dt className="font-medium text-ink">Tipo de construcción:</dt>
+                <dd>{location.tipo_construccion}</dd>
+              </div>
+            )}
+          </dl>
         )}
 
         {fotos.length > 0 && (

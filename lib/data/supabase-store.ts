@@ -13,6 +13,7 @@ import type {
   CreateLocationInput,
   CreateNeedInput,
   EmergencyStatus,
+  FuenteReporte,
   Fundraiser,
   LocationFilters,
   LocationRecord,
@@ -39,6 +40,9 @@ interface LocationRow {
   accuracy_m?: number | null;
   // Optional so rows from databases without the severity migration still work.
   personas_atrapadas?: string | null;
+  // Optional so rows from databases without the report-metadata migration still work.
+  fuente_reporte?: string | null;
+  tipo_construccion?: string | null;
   status: string;
   descripcion: string | null;
   contacto_nombre: string | null;
@@ -94,6 +98,8 @@ export function toLocation(r: LocationRow): LocationRecord {
     accuracyM: r.accuracy_m ?? null,
     status: r.status as EmergencyStatus,
     personas_atrapadas: (r.personas_atrapadas as PersonasAtrapadas) ?? PERSONAS_ATRAPADAS_DEFAULT,
+    fuente_reporte: (r.fuente_reporte as FuenteReporte) ?? null,
+    tipo_construccion: r.tipo_construccion ?? null,
     descripcion: r.descripcion ?? undefined,
     contactoNombre: r.contacto_nombre ?? undefined,
     contactoTelefono: r.contacto_telefono ?? undefined,
@@ -118,12 +124,21 @@ function toNeed(r: NeedRow): NeedRecord {
 }
 
 /**
- * True when an insert failed because the named column is absent from the table.
- * Used to detect databases that have not yet had a particular migration applied.
+ * Returns the column name when an insert failed because that column is absent
+ * from the table. Returns null for any other error type.
+ *
+ * Handles both Postgres 42703 ("column X of relation Y does not exist") and
+ * PostgREST schema-cache misses ("Could not find the column X"). Used to
+ * detect databases that have not yet had a particular migration applied.
  */
-function isMissingColumn(error: unknown, name: string): boolean {
+function missingColumnName(error: unknown): string | null {
   const message = (error as { message?: string } | null)?.message ?? '';
-  return new RegExp(name, 'i').test(message);
+  // Postgres: column "name" of relation "table" does not exist
+  let m = message.match(/column "(\w+)" of relation .+ does not exist/i);
+  if (m) return m[1];
+  // PostgREST schema cache miss
+  m = message.match(/could not find the column "(\w+)"/i);
+  return m?.[1] ?? null;
 }
 
 export function createSupabaseStore(url: string, key: string): DataStore {
@@ -185,7 +200,10 @@ export function createSupabaseStore(url: string, key: string): DataStore {
     },
 
     async createLocation(input: CreateLocationInput) {
-      const row = {
+      // Build the full insert payload with all optional columns. The retry loop
+      // below strips any column the database does not yet have (un-migrated DB),
+      // so reports are never silently lost due to a missing migration.
+      let payload: Record<string, unknown> = {
         nombre: input.nombre,
         estado: input.estado,
         ciudad: input.ciudad,
@@ -197,40 +215,35 @@ export function createSupabaseStore(url: string, key: string): DataStore {
         contacto_nombre: input.contactoNombre ?? null,
         contacto_telefono: input.contactoTelefono ?? null,
         fotos: input.fotos ?? [],
+        accuracy_m: input.accuracyM ?? null,
+        personas_atrapadas: input.personas_atrapadas ?? PERSONAS_ATRAPADAS_DEFAULT,
+        fuente_reporte: input.fuente_reporte ?? null,
+        tipo_construccion: input.tipo_construccion ?? null,
       };
 
-      let { data, error } = await client
-        .from('locations')
-        .insert({
-          ...row,
-          accuracy_m: input.accuracyM ?? null,
-          personas_atrapadas: input.personas_atrapadas ?? PERSONAS_ATRAPADAS_DEFAULT,
-        })
-        .select('*')
-        .single();
-
-      // Databases that have not run the severity migration yet reject the
-      // personas_atrapadas column; retry without it so reports still save.
-      if (error && isMissingColumn(error, 'personas_atrapadas')) {
-        ({ data, error } = await client
+      // Retry: if the insert fails because an optional column is absent from the
+      // database, remove that column and try again. Loops until success or a
+      // non-missing-column error, cleanly handling any combination of pending
+      // migrations without hardcoding column names.
+      for (;;) {
+        const { data, error } = await client
           .from('locations')
-          .insert({ ...row, accuracy_m: input.accuracyM ?? null })
+          .insert(payload)
           .select('*')
-          .single());
-      }
+          .single();
 
-      // Databases that have not run the accuracy_m migration yet reject that
-      // column; retry without it so reports still save instead of failing.
-      if (error && isMissingColumn(error, 'accuracy_m')) {
-        ({ data, error } = await client
-          .from('locations')
-          .insert(row)
-          .select('*')
-          .single());
-      }
+        if (!error) return toLocation(data as LocationRow);
 
-      if (error) throw error;
-      return toLocation(data as LocationRow);
+        const col = missingColumnName(error);
+        if (col && col in payload) {
+          const next = { ...payload };
+          delete next[col];
+          payload = next;
+          continue;
+        }
+
+        throw error;
+      }
     },
 
     async updateLocationStatus(id: string, status: EmergencyStatus) {

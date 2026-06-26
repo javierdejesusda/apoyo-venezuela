@@ -22,6 +22,19 @@ export type PersonasAtrapadas = (typeof PERSONAS_ATRAPADAS)[number];
 /** Default value when no information is available about trapped persons. */
 export const PERSONAS_ATRAPADAS_DEFAULT: PersonasAtrapadas = 'no_se';
 
+/** Source channel for a zone report. */
+export const FUENTE_REPORTE = ['vecino', 'video', 'noticia', 'organismo', 'otro'] as const;
+export type FuenteReporte = (typeof FUENTE_REPORTE)[number];
+
+/** Human-readable es_VE labels for each fuente_reporte value. */
+export const FUENTE_REPORTE_LABELS: Record<FuenteReporte, string> = {
+  vecino: 'Vecino',
+  video: 'Video',
+  noticia: 'Noticia',
+  organismo: 'Organismo oficial',
+  otro: 'Otro',
+};
+
 /** How urgent a specific need is. */
 export const URGENCIES = ['alta', 'media', 'baja'] as const;
 export type Urgency = (typeof URGENCIES)[number];
@@ -94,6 +107,10 @@ export interface LocationRecord {
   status: EmergencyStatus;
   /** Whether trapped persons are reported; absent/null treated as 'no_se' by consumers. */
   personas_atrapadas?: PersonasAtrapadas;
+  /** Source channel for this report; null when not specified. */
+  fuente_reporte?: FuenteReporte | null;
+  /** Construction type of the affected structure; null when not specified. */
+  tipo_construccion?: string | null;
   descripcion?: string;
   contactoNombre?: string;
   contactoTelefono?: string;
@@ -140,6 +157,8 @@ export interface CreateLocationInput {
   accuracyM?: number | null;
   status: EmergencyStatus;
   personas_atrapadas?: PersonasAtrapadas;
+  fuente_reporte?: FuenteReporte | null;
+  tipo_construccion?: string | null;
   descripcion?: string;
   contactoNombre?: string;
   contactoTelefono?: string;

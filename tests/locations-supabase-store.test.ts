@@ -106,6 +106,127 @@ describe('supabase store createNeed', () => {
   });
 });
 
+describe('supabase store createLocation', () => {
+  it('inserts fuente_reporte and tipo_construccion when provided', async () => {
+    const single = vi
+      .fn()
+      .mockResolvedValue({ data: { ...LOCATION_ROW }, error: null });
+    const select = vi.fn(() => ({ single }));
+    const insert = vi.fn(() => ({ select }));
+    from.mockReturnValue({ insert });
+
+    await makeStore().createLocation({
+      nombre: 'Zona',
+      estado: 'Carabobo',
+      ciudad: 'Valencia',
+      status: 'dano_parcial',
+      fuente_reporte: 'vecino',
+      tipo_construccion: 'edificio de concreto',
+    });
+
+    const payload = (insert.mock.calls[0] as unknown as [Record<string, unknown>])[0];
+    expect(payload.fuente_reporte).toBe('vecino');
+    expect(payload.tipo_construccion).toBe('edificio de concreto');
+  });
+
+  it('retries without fuente_reporte when that column is missing from the database', async () => {
+    const missingFuenteError = { message: 'column "fuente_reporte" of relation "locations" does not exist' };
+    const single = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: missingFuenteError })
+      .mockResolvedValue({ data: { ...LOCATION_ROW }, error: null });
+    const select = vi.fn(() => ({ single }));
+    const insert = vi.fn(() => ({ select }));
+    from.mockReturnValue({ insert });
+
+    const result = await makeStore().createLocation({
+      nombre: 'Zona',
+      estado: 'Carabobo',
+      ciudad: 'Valencia',
+      status: 'dano_parcial',
+      fuente_reporte: 'vecino',
+    });
+
+    expect(insert).toHaveBeenCalledTimes(2);
+    const retryPayload = (insert.mock.calls[1] as unknown as [Record<string, unknown>])[0];
+    expect(retryPayload.fuente_reporte).toBeUndefined();
+    expect(result.id).toBe('loc_1');
+  });
+
+  it('retries without tipo_construccion when that column is missing from the database', async () => {
+    const missingTipoError = { message: 'column "tipo_construccion" of relation "locations" does not exist' };
+    const single = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: missingTipoError })
+      .mockResolvedValue({ data: { ...LOCATION_ROW }, error: null });
+    const select = vi.fn(() => ({ single }));
+    const insert = vi.fn(() => ({ select }));
+    from.mockReturnValue({ insert });
+
+    const result = await makeStore().createLocation({
+      nombre: 'Zona',
+      estado: 'Carabobo',
+      ciudad: 'Valencia',
+      status: 'dano_parcial',
+      tipo_construccion: 'casa',
+    });
+
+    expect(insert).toHaveBeenCalledTimes(2);
+    const retryPayload = (insert.mock.calls[1] as unknown as [Record<string, unknown>])[0];
+    expect(retryPayload.tipo_construccion).toBeUndefined();
+    expect(result.id).toBe('loc_1');
+  });
+
+  it('eventually saves the report even when multiple optional columns are missing', async () => {
+    const missingFuenteError = { message: 'column "fuente_reporte" of relation "locations" does not exist' };
+    const missingTipoError = { message: 'column "tipo_construccion" of relation "locations" does not exist' };
+    const single = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: missingFuenteError })
+      .mockResolvedValueOnce({ data: null, error: missingTipoError })
+      .mockResolvedValue({ data: { ...LOCATION_ROW }, error: null });
+    const select = vi.fn(() => ({ single }));
+    const insert = vi.fn(() => ({ select }));
+    from.mockReturnValue({ insert });
+
+    const result = await makeStore().createLocation({
+      nombre: 'Zona',
+      estado: 'Carabobo',
+      ciudad: 'Valencia',
+      status: 'dano_parcial',
+      fuente_reporte: 'vecino',
+      tipo_construccion: 'casa',
+    });
+
+    expect(insert).toHaveBeenCalledTimes(3);
+    expect(result.id).toBe('loc_1');
+  });
+
+  it('maps fuente_reporte and tipo_construccion from the returned row', async () => {
+    const rowWithMeta = {
+      ...LOCATION_ROW,
+      fuente_reporte: 'organismo',
+      tipo_construccion: 'edificio de concreto',
+    };
+    const single = vi.fn().mockResolvedValue({ data: rowWithMeta, error: null });
+    const select = vi.fn(() => ({ single }));
+    const insert = vi.fn(() => ({ select }));
+    from.mockReturnValue({ insert });
+
+    const result = await makeStore().createLocation({
+      nombre: 'Zona',
+      estado: 'Carabobo',
+      ciudad: 'Valencia',
+      status: 'dano_parcial',
+      fuente_reporte: 'organismo',
+      tipo_construccion: 'edificio de concreto',
+    });
+
+    expect(result.fuente_reporte).toBe('organismo');
+    expect(result.tipo_construccion).toBe('edificio de concreto');
+  });
+});
+
 describe('supabase store status updates go through validated RPCs', () => {
   it('updateLocationStatus calls set_location_status and maps the row', async () => {
     rpc.mockResolvedValue({ data: { ...LOCATION_ROW, status: 'estable' }, error: null });

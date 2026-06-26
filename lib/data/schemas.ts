@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { normalizeFundraiserUrl } from './fundraiser-url';
 import {
   EMERGENCY_STATUSES,
+  FUENTE_REPORTE,
   MAX_FOTOS,
   NEED_CATEGORIES,
   NEED_STATUSES,
@@ -21,6 +22,15 @@ export const personasAtrapadasSchema = z.enum(PERSONAS_ATRAPADAS).default(PERSON
 export const urgencySchema = z.enum(URGENCIES);
 export const needCategorySchema = z.enum(NEED_CATEGORIES);
 export const needStatusSchema = z.enum(NEED_STATUSES);
+
+/**
+ * Accepts any valid fuente value, maps empty string and null to undefined
+ * so an unselected <select> does not fail validation.
+ */
+export const fuenteReporteSchema = z.preprocess(
+  (v) => (v == null || v === '' ? undefined : v),
+  z.enum(FUENTE_REPORTE).optional(),
+);
 
 /** Treats empty strings as "not provided" so optional form fields validate. */
 const optionalText = (max: number) =>
@@ -57,6 +67,8 @@ export const createLocationSchema = z.object({
   accuracyM: z.number().nonnegative().nullable().optional(),
   status: emergencyStatusSchema,
   personas_atrapadas: personasAtrapadasSchema,
+  fuente_reporte: fuenteReporteSchema,
+  tipo_construccion: optionalText(200),
   descripcion: optionalText(1000),
   contactoNombre: optionalText(80),
   contactoTelefono: optionalText(40),

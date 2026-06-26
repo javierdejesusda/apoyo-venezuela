@@ -83,6 +83,8 @@ export function createMemoryStore(initial?: MemorySeed): DataStore {
         accuracyM: input.accuracyM ?? null,
         status: input.status,
         personas_atrapadas: input.personas_atrapadas ?? PERSONAS_ATRAPADAS_DEFAULT,
+        fuente_reporte: input.fuente_reporte ?? null,
+        tipo_construccion: input.tipo_construccion ?? null,
         descripcion: input.descripcion,
         contactoNombre: input.contactoNombre,
         contactoTelefono: input.contactoTelefono,
