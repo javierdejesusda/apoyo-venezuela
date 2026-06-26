@@ -25,7 +25,7 @@ export function HomeExplorer({
   states: string[];
 }) {
   const [filters, setFilters] = useState<LocationFilters>({});
-  const [view, setView] = useState<HomeView>('lista');
+  const [view, setView] = useState<HomeView>('mapa');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const visible = useMemo(

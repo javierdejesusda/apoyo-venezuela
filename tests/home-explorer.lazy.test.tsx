@@ -24,16 +24,16 @@ function loc(over: Partial<LocationWithNeeds> = {}): LocationWithNeeds {
 }
 
 describe('HomeExplorer critical-path JS', () => {
-  it('defaults to the list and lazy-loads the map skeleton only when the map opens', () => {
+  it('defaults to the map, painting the cheap skeleton on first load while deferring the heavy Leaflet chunk', () => {
     const { container } = render(<HomeExplorer locations={[loc()]} states={['Carabobo']} />);
 
-    // The list is the default view, so no map skeleton paints on first load.
-    expect(screen.queryByTestId('map-skeleton')).toBeNull();
-
-    // Switching to the map tab paints the cheap skeleton synchronously...
-    fireEvent.click(screen.getByRole('tab', { name: 'Mapa' }));
+    // The map is the default view, so the cheap skeleton paints on first load...
     expect(screen.getByTestId('map-skeleton')).toBeInTheDocument();
     // ...while next/dynamic(ssr:false) still defers the heavy Leaflet chunk.
     expect(container.querySelector('.leaflet-container')).toBeNull();
+
+    // Switching to the list tab drops the map skeleton entirely.
+    fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
+    expect(screen.queryByTestId('map-skeleton')).toBeNull();
   });
 });
