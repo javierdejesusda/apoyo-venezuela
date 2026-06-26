@@ -25,6 +25,7 @@ function stubStore(getLocation: DataStore['getLocation']): DataStore {
   return {
     isDemo: false,
     listLocations: async () => [],
+    listLocationsPage: async () => ({ items: [], total: 0 }),
     getLocation,
     createLocation: async () => {
       throw new Error('not implemented');

@@ -18,12 +18,22 @@ import type {
   NeedStatus,
 } from './types';
 
-export { REPORT_QUOTA_LIMIT, REPORT_QUOTA_WINDOW_MS } from './types';
+export { PAGE_SIZE, REPORT_QUOTA_LIMIT, REPORT_QUOTA_WINDOW_MS } from './types';
 
 export interface DataStore {
   /** True when running on the in-memory demo backend (data is not shared). */
   isDemo: boolean;
   listLocations(filters?: LocationFilters): Promise<LocationWithNeeds[]>;
+  /**
+   * Returns a single page of filtered, sorted locations plus the total
+   * filtered count (before slicing). Used by the home page and the
+   * /api/zonas Route Handler for bounded pagination.
+   */
+  listLocationsPage(
+    filters: LocationFilters,
+    offset: number,
+    limit: number,
+  ): Promise<{ items: LocationWithNeeds[]; total: number }>;
   getLocation(id: string): Promise<LocationWithNeeds | null>;
   createLocation(input: CreateLocationInput): Promise<LocationRecord>;
   updateLocationStatus(

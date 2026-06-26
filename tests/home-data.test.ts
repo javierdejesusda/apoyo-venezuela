@@ -26,6 +26,10 @@ function stubStore(listLocations: () => Promise<LocationWithNeeds[]>): DataStore
   return {
     isDemo: false,
     listLocations,
+    listLocationsPage: async (_, offset, limit) => {
+      const all = await listLocations();
+      return { items: all.slice(offset, offset + limit), total: all.length };
+    },
     getLocation: async () => null,
     createLocation: async () => {
       throw new Error('not implemented');

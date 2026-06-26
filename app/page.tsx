@@ -3,7 +3,7 @@ import { HomeHero } from '@/components/home-hero';
 import { MissingPersonsLink } from '@/components/missing-persons-link';
 import { SharePanel } from '@/components/share-panel';
 import { loadHomeData } from '@/lib/data/home';
-import { getStore } from '@/lib/data/store';
+import { getStore, PAGE_SIZE } from '@/lib/data/store';
 
 // ISR with 30-second revalidation. In-app writes call revalidatePath('/')
 // via app/actions.ts for instant on-demand revalidation. Out-of-band changes
@@ -13,6 +13,12 @@ export const revalidate = 30;
 
 export default async function HomePage() {
   const { locations, stats, states, loadFailed } = await loadHomeData(getStore());
+
+  // Derive the first page from the already-loaded full set to avoid a second
+  // round-trip. listLocations() returns the sorted set; slicing to PAGE_SIZE
+  // gives the bounded initial payload for the client.
+  const initialLocations = locations.slice(0, PAGE_SIZE);
+  const initialTotal = locations.length;
 
   return (
     <div className="space-y-6">
@@ -32,7 +38,11 @@ export default async function HomePage() {
         </p>
       )}
 
-      <HomeExplorer locations={locations} states={states} />
+      <HomeExplorer
+        initialLocations={initialLocations}
+        initialTotal={initialTotal}
+        states={states}
+      />
     </div>
   );
 }

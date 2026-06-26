@@ -175,11 +175,16 @@ export interface CreateNeedInput {
 /** Filters applied to the zone list/map on the home screen. */
 export interface LocationFilters {
   estado?: string;
+  /** Ciudad filter (applied in a later release; param plumbing available now). */
+  ciudad?: string;
   status?: EmergencyStatus;
   categoria?: NeedCategory;
   soloUrgentes?: boolean;
   texto?: string;
 }
+
+/** Default number of locations per page for the bounded home list. */
+export const PAGE_SIZE = 20;
 
 /** Category of an emergency phone contact (matches research output). */
 export const CONTACT_CATEGORIES = [

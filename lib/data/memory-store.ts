@@ -60,6 +60,11 @@ export function createMemoryStore(initial?: MemorySeed): DataStore {
       return sortLocations(applyFilters(compose(), filters));
     },
 
+    async listLocationsPage(filters: LocationFilters, offset: number, limit: number) {
+      const filtered = sortLocations(applyFilters(compose(), filters));
+      return { items: filtered.slice(offset, offset + limit), total: filtered.length };
+    },
+
     async getLocation(id: string) {
       const loc = locations.find((l) => l.id === id);
       return loc ? withSummary(loc, needs) : null;

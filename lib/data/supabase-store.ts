@@ -157,6 +157,22 @@ export function createSupabaseStore(url: string, key: string): DataStore {
       return sortLocations(applyFilters(composed, filters));
     },
 
+    async listLocationsPage(filters: LocationFilters, offset: number, limit: number) {
+      // Embed needs in a single round-trip, then apply shared selectors in
+      // memory. Full server-side predicate push for every filter field is
+      // deferred to a future optimization; the in-memory approach keeps
+      // the needs composition logic in one place.
+      const { data, error } = await client
+        .from('locations')
+        .select('*, needs(*)')
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      const filtered = sortLocations(
+        applyFilters(((data as LocationWithNeedsRow[] | null) ?? []).map(composeLocation), filters),
+      );
+      return { items: filtered.slice(offset, offset + limit), total: filtered.length };
+    },
+
     async getLocation(id: string) {
       const { data, error } = await client
         .from('locations')
