@@ -227,6 +227,102 @@ describe('supabase store createLocation', () => {
   });
 });
 
+describe('supabase store getClusterForLocation', () => {
+  const MEMBER_ROW_DERRUMBE = {
+    id: 'loc_a',
+    nombre: 'Torre A',
+    estado: 'Miranda',
+    ciudad: 'Caracas',
+    zona: null,
+    lat: 10.49,
+    lng: -66.87,
+    accuracy_m: null,
+    status: 'derrumbe',
+    personas_atrapadas: 'si',
+    fotos: ['url1'],
+    fuente_reporte: null,
+    tipo_construccion: null,
+    descripcion: null,
+    contacto_nombre: null,
+    contacto_telefono: null,
+    created_at: '2026-06-01T00:00:00Z',
+    updated_at: '2026-06-02T00:00:00Z',
+  };
+
+  const MEMBER_ROW_ESTABLE = {
+    id: 'loc_b',
+    nombre: 'Torre B',
+    estado: 'Miranda',
+    ciudad: 'Caracas',
+    zona: null,
+    lat: 10.49,
+    lng: -66.87,
+    accuracy_m: null,
+    status: 'estable',
+    personas_atrapadas: 'no',
+    fotos: ['url2'],
+    fuente_reporte: null,
+    tipo_construccion: null,
+    descripcion: null,
+    contacto_nombre: null,
+    contacto_telefono: null,
+    created_at: '2026-06-01T01:00:00Z',
+    updated_at: '2026-06-01T01:00:00Z',
+  };
+
+  const UPDATE_ROW = {
+    id: 'upd_1',
+    cluster_id: 'cl_1',
+    kind: 'report_added',
+    note: null,
+    created_at: '2026-06-01T00:00:00Z',
+  };
+
+  it('returns null and does not throw when RPC returns an error (fail-open)', async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: 'permission denied' } });
+
+    const result = await makeStore().getClusterForLocation('loc_a');
+
+    expect(rpc).toHaveBeenCalledWith('get_cluster_for_location', { loc_id: 'loc_a' });
+    expect(result).toBeNull();
+  });
+
+  it('returns null when RPC returns empty members array', async () => {
+    rpc.mockResolvedValue({ data: { members: [], updates: [] }, error: null });
+
+    const result = await makeStore().getClusterForLocation('loc_a');
+
+    expect(result).toBeNull();
+  });
+
+  it('maps two snake_case member rows into a correct ClusterCanonicalView', async () => {
+    rpc.mockResolvedValue({
+      data: {
+        members: [MEMBER_ROW_DERRUMBE, MEMBER_ROW_ESTABLE],
+        updates: [UPDATE_ROW],
+      },
+      error: null,
+    });
+
+    const result = await makeStore().getClusterForLocation('loc_a');
+
+    expect(result).not.toBeNull();
+    // Most-severe member wins (derrumbe rank 0 < estable rank 4).
+    expect(result?.status).toBe('derrumbe');
+    expect(result?.memberCount).toBe(2);
+    // 'si' wins over 'no'.
+    expect(result?.personas_atrapadas).toBe('si');
+    // Photo union: url1 from derrumbe member, url2 from estable member.
+    expect(result?.fotos).toEqual(['url1', 'url2']);
+    // Timeline entry mapped from update row.
+    expect(result?.timeline).toHaveLength(1);
+    expect(result?.timeline[0].kind).toBe('report_added');
+    expect(result?.timeline[0].createdAt).toBe('2026-06-01T00:00:00Z');
+    // No verificado field.
+    expect('verificado' in (result as object)).toBe(false);
+  });
+});
+
 describe('supabase store status updates go through validated RPCs', () => {
   it('updateLocationStatus calls set_location_status and maps the row', async () => {
     rpc.mockResolvedValue({ data: { ...LOCATION_ROW, status: 'estable' }, error: null });

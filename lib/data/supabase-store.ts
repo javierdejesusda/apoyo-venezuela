@@ -7,8 +7,10 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { DuplicateFundraiserError } from './fundraiser-url';
 import { applyFilters, sortLocations, withSummary } from './selectors';
+import { deriveCanonicalView } from './zone-cluster';
 import { PERSONAS_ATRAPADAS_DEFAULT } from './types';
 import type {
+  ClusterCanonicalView,
   CreateFundraiserInput,
   CreateLocationInput,
   CreateNeedInput,
@@ -22,6 +24,8 @@ import type {
   NeedStatus,
   PersonasAtrapadas,
   Urgency,
+  ZoneUpdate,
+  ZoneUpdateKind,
 } from './types';
 import type { DataStore } from './store';
 
@@ -72,6 +76,15 @@ interface FundraiserRow {
   organizador: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Snake-case row returned by the get_cluster_for_location RPC. */
+interface RpcUpdateRow {
+  id: string;
+  cluster_id: string;
+  kind: string;
+  note: string | null;
+  created_at: string;
 }
 
 function toFundraiser(r: FundraiserRow): Fundraiser {
@@ -331,11 +344,35 @@ export function createSupabaseStore(url: string, key: string): DataStore {
       }
     },
 
-    // Stub: real implementation lands in PR11. Returns null until the canonical
-    // loader query (zone_clusters JOIN zone_cluster_members JOIN zone_updates)
-    // is built and the SECURITY DEFINER RPC is in place.
-    async getClusterForLocation() {
-      return null;
+    async getClusterForLocation(locationId: string): Promise<ClusterCanonicalView | null> {
+      // FAIL-OPEN: any RPC error (missing migration, permissions, network)
+      // returns null so the zona page degrades to single-report display rather
+      // than breaking with a 500. The cluster tables are RLS-locked; direct
+      // table access from the anon client is intentionally blocked. The
+      // SECURITY DEFINER RPC in 20260630010000_cluster_read_rpc.sql is the
+      // only sanctioned read path.
+      try {
+        const { data, error } = await client.rpc('get_cluster_for_location', {
+          loc_id: locationId,
+        });
+        if (error || !data) return null;
+
+        const raw = data as { members: LocationRow[]; updates: RpcUpdateRow[] };
+        if (!raw.members || raw.members.length === 0) return null;
+
+        const members: LocationRecord[] = raw.members.map(toLocation);
+        const updates: ZoneUpdate[] = (raw.updates ?? []).map((u) => ({
+          id: u.id,
+          clusterId: u.cluster_id,
+          kind: u.kind as ZoneUpdateKind,
+          note: u.note,
+          createdAt: u.created_at,
+        }));
+
+        return deriveCanonicalView(members, updates);
+      } catch {
+        return null;
+      }
     },
   };
 }

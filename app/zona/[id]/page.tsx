@@ -5,12 +5,14 @@ import { ChevronLeft, MapPin, PhoneCall } from 'lucide-react';
 
 import { getStore } from '@/lib/data/store';
 import { loadZone } from '@/lib/data/zone';
+import { loadZoneCluster } from '@/lib/data/zone-cluster';
 import { buildDirectionsLinks } from '@/lib/directions';
 import { FUENTE_REPORTE_LABELS } from '@/lib/data/types';
 import { statusMeta, toneClasses } from '@/lib/status';
 import { formatRelativeTime, telHref } from '@/lib/utils';
 import { SharePanel } from '@/components/share-panel';
 import { PersonasAtrapadasBadge, StatusBadge } from '@/components/status-badges';
+import { ZoneTimeline } from '@/components/zone-timeline';
 import { AddNeedForm } from '@/components/add-need-form';
 import { NeedList } from '@/components/need-list';
 import { ZonePhotoGallery } from '@/components/zone-photo-gallery';
@@ -37,7 +39,11 @@ export async function generateMetadata({ params }: Props): Promise<{ title: stri
 
 export default async function ZonaPage({ params }: Props) {
   const { id } = await params;
-  const { location, loadFailed } = await getZone(id);
+  // Run zone load and cluster load in parallel; cluster failure is non-fatal.
+  const [{ location, loadFailed }, cluster] = await Promise.all([
+    getZone(id),
+    loadZoneCluster(id, getStore()),
+  ]);
 
   const backLink = (
     <Link
@@ -70,10 +76,16 @@ export default async function ZonaPage({ params }: Props) {
 
   const { total, pendientes, urgentes, cubiertos } = location.summary;
 
-  const tone = statusMeta[location.status].tone;
+  // When a cluster canonical view is available, override severity-derived
+  // values with the cluster aggregate (most-severe member wins).
+  const effectiveStatus = cluster?.status ?? location.status;
+  const effectivePersonasAtrapadas = cluster?.personas_atrapadas ?? location.personas_atrapadas;
+  const effectiveFotos = cluster?.fotos ?? location.fotos ?? [];
+
+  const tone = statusMeta[effectiveStatus].tone;
   const tones = toneClasses(tone);
-  const isDerrumbe = location.status === 'derrumbe';
-  const fotos = location.fotos ?? [];
+  const isDerrumbe = effectiveStatus === 'derrumbe';
+  const fotos = effectiveFotos;
   const dirs = buildDirectionsLinks(location.lat, location.lng);
 
   const dirLinkClass =
@@ -108,14 +120,14 @@ export default async function ZonaPage({ params }: Props) {
           )}
 
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={location.status} />
+            <StatusBadge status={effectiveStatus} />
             <span className="text-xs text-ink-faint">
               Actualizado {formatRelativeTime(location.updatedAt)}
             </span>
           </div>
 
-          {location.personas_atrapadas === 'si' && (
-            <PersonasAtrapadasBadge value={location.personas_atrapadas} />
+          {effectivePersonasAtrapadas === 'si' && (
+            <PersonasAtrapadasBadge value={effectivePersonasAtrapadas} />
           )}
         </div>
 
@@ -188,6 +200,10 @@ export default async function ZonaPage({ params }: Props) {
 
         {fotos.length > 0 && (
           <ZonePhotoGallery fotos={fotos} zoneName={location.nombre} />
+        )}
+
+        {cluster && cluster.timeline.length > 0 && (
+          <ZoneTimeline entries={cluster.timeline} />
         )}
 
         {total > 0 && (

@@ -167,8 +167,9 @@ export function createMemoryStore(initial?: MemorySeed): DataStore {
       return true;
     },
 
-    // Stub: real implementation lands in PR11 (supabase-store gets the actual
-    // query against zone_clusters/zone_cluster_members/zone_updates).
+    // No clustering in demo/memory mode: the zone_clusters tables exist only in
+    // the real Supabase database. Returning null causes the zona page to fall
+    // back to single-report display, which is the correct demo behaviour.
     async getClusterForLocation() {
       return null;
     },
