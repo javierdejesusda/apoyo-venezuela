@@ -1,4 +1,5 @@
 import { AccessRestrictionAdvisory } from '@/components/access-restriction-advisory';
+import { AsistenteCallout } from '@/components/asistente-callout';
 import { HomeExplorer } from '@/components/home-explorer';
 import { HomeHero } from '@/components/home-hero';
 import { MissingPersonsLink } from '@/components/missing-persons-link';
@@ -44,6 +45,8 @@ export default async function HomePage() {
       <RescueAdvisory />
 
       <MissingPersonsLink variant="card" />
+
+      <AsistenteCallout />
 
       <SharePanel kind="home" />
 

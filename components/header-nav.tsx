@@ -11,6 +11,7 @@ const NAV = [
   { href: '/recaudaciones', label: 'Recaudaciones' },
   { href: '/telefonos', label: 'Teléfonos' },
   { href: '/guia', label: 'Guía' },
+  { href: '/asistente', label: 'Asistente' },
 ];
 
 /** Desktop primary nav with an active-route highlight. */
