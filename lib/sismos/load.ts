@@ -11,10 +11,15 @@ import { parseUsgsFeed } from './parse';
 import type { Sismo } from './types';
 
 const REVALIDATE_SECONDS = 300;
+const WINDOW_MS = REVALIDATE_SECONDS * 1000;
 
 export async function loadSismos(): Promise<Sismo[]> {
   try {
-    const url = buildUsgsQuery({ now: Date.now() });
+    // Bucket "now" to the cache window so starttime (and thus the query URL)
+    // stays stable for five minutes; otherwise millisecond-precision timestamps
+    // would change the URL every call and defeat the Next data cache.
+    const now = Math.floor(Date.now() / WINDOW_MS) * WINDOW_MS;
+    const url = buildUsgsQuery({ now });
     const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } });
     if (!res.ok) return [];
     return parseUsgsFeed(await res.json());
