@@ -113,7 +113,7 @@ describe('buscarZonasQuery', () => {
   });
 
   it('forwards categoria and estado filters to listLocations', async () => {
-    const spy = vi.fn(async () => [loc()]);
+    const spy = vi.fn<(f?: LocationFilters) => Promise<LocationWithNeeds[]>>(async () => [loc()]);
     const store = stubStore(spy);
 
     await buscarZonasQuery(store, { categoria: 'agua', estado: 'Zulia' });
@@ -124,7 +124,7 @@ describe('buscarZonasQuery', () => {
   });
 
   it('forwards texto filter to listLocations', async () => {
-    const spy = vi.fn(async () => []);
+    const spy = vi.fn<(f?: LocationFilters) => Promise<LocationWithNeeds[]>>(async () => []);
     const store = stubStore(spy);
 
     await buscarZonasQuery(store, { texto: 'medicinas urgente' });
@@ -133,12 +133,12 @@ describe('buscarZonasQuery', () => {
   });
 
   it('does not forward unrecognized params', async () => {
-    const spy = vi.fn(async () => []);
+    const spy = vi.fn<(f?: LocationFilters) => Promise<LocationWithNeeds[]>>(async () => []);
     const store = stubStore(spy);
 
     await buscarZonasQuery(store, {});
 
-    const calledWith = spy.mock.calls[0][0] as Record<string, unknown>;
+    const calledWith = (spy.mock.calls[0][0] ?? {}) as Record<string, unknown>;
     expect(calledWith).not.toHaveProperty('needStatus');
   });
 });
