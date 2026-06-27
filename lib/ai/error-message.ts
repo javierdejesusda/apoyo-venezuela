@@ -9,9 +9,10 @@ export const ASSISTANT_ERROR_MESSAGE =
   'Ocurrió un error procesando tu consulta. Intentá de nuevo.';
 
 /**
- * Maps any stream error to the fixed user-safe message. The raw error is never
- * returned; callers should log it server-side for diagnostics.
+ * Logs the real error server-side for diagnostics and returns the fixed
+ * user-safe message. The raw error is never returned to the client.
  */
-export function assistantErrorMessage(_error: unknown): string {
+export function assistantErrorMessage(error: unknown): string {
+  console.error('asistente stream error:', error);
   return ASSISTANT_ERROR_MESSAGE;
 }

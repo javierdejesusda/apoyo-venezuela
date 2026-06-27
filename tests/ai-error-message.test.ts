@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   ASSISTANT_ERROR_MESSAGE,
@@ -6,6 +6,9 @@ import {
 } from '@/lib/ai/error-message';
 
 describe('assistantErrorMessage', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
   it('returns the fixed generic message for an Error', () => {
     const result = assistantErrorMessage(new Error('boom'));
 
@@ -24,5 +27,13 @@ describe('assistantErrorMessage', () => {
   it('returns the generic message for a non-Error value', () => {
     expect(assistantErrorMessage('raw string failure')).toBe(ASSISTANT_ERROR_MESSAGE);
     expect(assistantErrorMessage(undefined)).toBe(ASSISTANT_ERROR_MESSAGE);
+  });
+
+  it('logs the real error server-side for diagnostics', () => {
+    const error = new Error('upstream failure');
+
+    assistantErrorMessage(error);
+
+    expect(console.error).toHaveBeenCalledWith('asistente stream error:', error);
   });
 });

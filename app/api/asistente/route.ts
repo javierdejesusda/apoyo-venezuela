@@ -76,10 +76,7 @@ export async function POST(req: Request): Promise<Response> {
 
   const uiStream = toUIMessageStream({
     stream: result.stream,
-    onError: (error) => {
-      console.error('asistente stream error:', error);
-      return assistantErrorMessage(error);
-    },
+    onError: (error) => assistantErrorMessage(error),
   });
 
   return createUIMessageStreamResponse({ stream: uiStream });
