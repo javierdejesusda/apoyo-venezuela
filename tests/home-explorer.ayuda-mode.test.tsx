@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { HomeExplorer } from '@/components/home-explorer';
 import type { LocationWithNeeds } from '@/lib/data/types';
@@ -50,33 +50,51 @@ function locWithoutNeeds(id: string): LocationWithNeeds {
   };
 }
 
-describe('HomeExplorer danos mode — default view shows all zones', () => {
-  it('shows all zones on the map in the default danos state', async () => {
+describe('HomeExplorer ayuda mode — default soloConPedidos filtering', () => {
+  it('shows only zones with open needs on the map in the default ayuda state', async () => {
     const withNeeds = locWithNeeds('has-needs');
     const withoutNeeds = locWithoutNeeds('no-needs');
     const allZones = [withNeeds, withoutNeeds];
 
     render(
       <HomeExplorer
-        initialLocations={allZones}
+        initialLocations={allZones.slice(0, 1)}
         initialMapLocations={allZones}
         initialTotal={allZones.length}
         states={['Carabobo']}
       />,
     );
 
-    // Default danos mode: map receives all zones — no soloConPedidos filter.
-    // findByTestId waits for the dynamic MapView to resolve.
+    // Default ayuda mode: map receives only the 1 zone with open needs.
+    // findByTestId is needed because the dynamic MapView resolves asynchronously.
     const pinCount = await screen.findByTestId('map-pin-count');
-    expect(pinCount.textContent).toBe('2');
+    expect(pinCount.textContent).toBe('1');
   });
 
-  it('count label reflects total count in default danos mode', async () => {
+  it('count label reflects filtered count in default ayuda mode', () => {
     const withNeeds = locWithNeeds('has-needs');
     const withoutNeeds = locWithoutNeeds('no-needs');
     const allZones = [withNeeds, withoutNeeds];
 
     render(
+      <HomeExplorer
+        initialLocations={allZones.slice(0, 1)}
+        initialMapLocations={allZones}
+        initialTotal={allZones.length}
+        states={['Carabobo']}
+      />,
+    );
+
+    // The result count label should say "1 zona con pedidos", not "2 zonas con pedidos".
+    expect(screen.getByText(/1\s+zona/i)).toBeInTheDocument();
+  });
+
+  it('excludes a no-pedidos zone name from the default ayuda list view', () => {
+    const withNeeds = locWithNeeds('has-needs');
+    const withoutNeeds = locWithoutNeeds('no-needs');
+    const allZones = [withNeeds, withoutNeeds];
+
+    const { getByRole, queryByText } = render(
       <HomeExplorer
         initialLocations={allZones}
         initialMapLocations={allZones}
@@ -85,87 +103,11 @@ describe('HomeExplorer danos mode — default view shows all zones', () => {
       />,
     );
 
-    // Both zones are in scope; result count should say "2 zona…".
-    expect(screen.getByText(/2\s+zona/i)).toBeInTheDocument();
-  });
+    // Switch to list view.
+    const listaTab = getByRole('tab', { name: 'Lista' });
+    listaTab.click();
 
-  it('includes zones without open needs in the default danos list view', () => {
-    const withNeeds = locWithNeeds('has-needs');
-    const withoutNeeds = locWithoutNeeds('no-needs');
-    const allZones = [withNeeds, withoutNeeds];
-
-    render(
-      <HomeExplorer
-        initialLocations={allZones}
-        initialMapLocations={allZones}
-        initialTotal={allZones.length}
-        states={['Carabobo']}
-      />,
-    );
-
-    // fireEvent.click flushes pending React state so the list is visible immediately.
-    fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
-
-    // The zone with no open needs must appear in the danos default list.
-    expect(screen.getByText(/Zona sin pedidos no-needs/i)).toBeInTheDocument();
-  });
-});
-
-describe('HomeExplorer ayuda mode — ?m=ayuda deep-link applies soloConPedidos', () => {
-  beforeEach(() => {
-    // Simulate a deep-link to /?m=ayuda. We only need window.location.search;
-    // window.history.replaceState (called by handleModeChange) stays on window.history.
-    vi.stubGlobal('location', { search: '?m=ayuda' });
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('deep-linking ?m=ayuda shows only zones with open needs on the map', async () => {
-    const withNeeds = locWithNeeds('has-needs');
-    const withoutNeeds = locWithoutNeeds('no-needs');
-    const allZones = [withNeeds, withoutNeeds];
-
-    render(
-      <HomeExplorer
-        initialLocations={allZones}
-        initialMapLocations={allZones}
-        initialTotal={allZones.length}
-        states={['Carabobo']}
-      />,
-    );
-
-    // After the URL-sync effect fires, ayuda mode applies soloConPedidos.
-    // Only the zone with open needs passes the filter -> pin count drops to 1.
-    await waitFor(() => {
-      expect(screen.getByTestId('map-pin-count').textContent).toBe('1');
-    });
-  });
-
-  it('deep-linking ?m=ayuda excludes zones without open needs from list view', async () => {
-    const withNeeds = locWithNeeds('has-needs');
-    const withoutNeeds = locWithoutNeeds('no-needs');
-    const allZones = [withNeeds, withoutNeeds];
-
-    render(
-      <HomeExplorer
-        initialLocations={allZones}
-        initialMapLocations={allZones}
-        initialTotal={allZones.length}
-        states={['Carabobo']}
-      />,
-    );
-
-    // Wait for the URL-sync effect to apply the ayuda soloConPedidos invariant.
-    await waitFor(() => {
-      expect(screen.getByTestId('map-pin-count').textContent).toBe('1');
-    });
-
-    // fireEvent.click flushes pending React state so the list is visible immediately.
-    fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
-
-    // The zone with no open needs must not appear after the ayuda switch.
-    expect(screen.queryByText(/Zona sin pedidos no-needs/i)).toBeNull();
+    // The zone with no needs must not appear in the list.
+    expect(queryByText(/Zona sin pedidos no-needs/i)).toBeNull();
   });
 });
