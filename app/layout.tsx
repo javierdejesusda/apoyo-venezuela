@@ -6,7 +6,6 @@ import './globals.css';
 import { BottomNav } from '@/components/bottom-nav';
 import { ConnectionStatus } from '@/components/connection-status';
 import { DemoBanner } from '@/components/demo-banner';
-import { SafetyBanner } from '@/components/safety-banner';
 import { ServiceWorkerRegister } from '@/components/service-worker-register';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
@@ -99,7 +98,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <DemoBanner show={isDemoMode()} />
           <ConnectionStatus />
           <SiteHeader />
-          <SafetyBanner />
           <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-4 md:pb-12">{children}</main>
           <SiteFooter />
           <BottomNav />
