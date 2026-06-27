@@ -56,9 +56,12 @@ function buildZonasUrl(
   return `/api/zonas?${params.toString()}`;
 }
 
-// Ayuda mode always seeds with soloConPedidos — hoisted so useMemo can reference
-// a stable object identity and avoid recomputing the filtered set on every render.
+// Ayuda mode always requires soloConPedidos — named const keeps the invariant
+// in one place and is spread into the filters object in handleModeChange.
 const DEFAULT_AYUDA_FILTERS: LocationFilters = { soloConPedidos: true };
+
+// Danos mode shows all zones with no additional filter beyond what the server sends.
+const DEFAULT_DANOS_FILTERS: LocationFilters = {};
 
 /**
  * Client shell that filters zones and switches between the map and the list.
@@ -99,18 +102,18 @@ export function HomeExplorer({
 }) {
   const mapInitial = initialMapLocations ?? initialLocations;
 
-  // Always start in ayuda mode so the server-rendered HTML matches the ISR-cached
-  // page. The URL is read once after hydration (useEffect below) to switch to danos
-  // if the user deep-linked to /?m=danos, avoiding any hydration mismatch.
+  // Always start in danos mode so the server-rendered HTML matches the ISR-cached
+  // page. The URL is read once after hydration (useEffect below) to switch to ayuda
+  // if the user deep-linked to /?m=ayuda, avoiding any hydration mismatch.
   // Memoized: re-renders from pin-clicks, keystrokes, and view-toggles no longer
   // recompute sortLocations(applyFilters(...)) over the full ~800-location set.
   const seeded = useMemo(
-    () => sortLocations(applyFilters(mapInitial, DEFAULT_AYUDA_FILTERS)),
+    () => sortLocations(applyFilters(mapInitial, DEFAULT_DANOS_FILTERS)),
     [mapInitial],
   );
 
-  const [mode, setMode] = useState<ExplorerMode>('ayuda');
-  const [filters, setFilters] = useState<LocationFilters>(DEFAULT_AYUDA_FILTERS);
+  const [mode, setMode] = useState<ExplorerMode>('danos');
+  const [filters, setFilters] = useState<LocationFilters>(DEFAULT_DANOS_FILTERS);
   const [view, setView] = useState<HomeView>('mapa');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [displayed, setDisplayed] = useState<LocationWithNeeds[]>(() => seeded.slice(0, PAGE_SIZE));
@@ -200,7 +203,7 @@ export function HomeExplorer({
         ciudad: filters.ciudad,
       };
       const newFilters: LocationFilters =
-        newMode === 'ayuda' ? { ...base, soloConPedidos: true } : base;
+        newMode === 'ayuda' ? { ...base, ...DEFAULT_AYUDA_FILTERS } : base;
       handleFilterChange(newFilters);
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', `?m=${newMode}`);
@@ -209,12 +212,12 @@ export function HomeExplorer({
     [filters, handleFilterChange],
   );
 
-  // One-time URL sync: if the user deep-linked to /?m=danos, switch client-side
-  // after hydration so the server HTML (always ayuda) matches the ISR cache.
+  // One-time URL sync: if the user deep-linked to /?m=ayuda, switch client-side
+  // after hydration so the server HTML (always danos) matches the ISR cache.
   useEffect(() => {
     const m = new URLSearchParams(window.location.search).get('m');
     // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate external-state sync (URL -> React)
-    if (m === 'danos') handleModeChange('danos');
+    if (m === 'ayuda') handleModeChange('ayuda');
     // eslint-disable-next-line react-hooks/exhaustive-deps -- empty deps intentional: one-time URL read on mount
   }, []);
 
