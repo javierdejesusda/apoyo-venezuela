@@ -42,3 +42,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# but do track the example env file
+!.env.example
