@@ -29,8 +29,8 @@ interface ZonasResponse {
   nextCursor: number | null;
 }
 
-// Zones default to having one open need. With the danos default there is no
-// soloConPedidos filter on mount, so all zones pass the initial seeded state.
+// Zones default to having one open need so they pass the ayuda soloConPedidos
+// filter that seeded state applies on mount.
 function loc(id: string, over: Partial<LocationWithNeeds> = {}): LocationWithNeeds {
   return {
     id,
