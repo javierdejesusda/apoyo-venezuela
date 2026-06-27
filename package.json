@@ -13,7 +13,10 @@
     "delete-report": "node scripts/delete-report.mjs"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.2",
+    "@ai-sdk/react": "^4.0.5",
     "@supabase/supabase-js": "^2.108.2",
+    "ai": "^7.0.4",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.21.0",
