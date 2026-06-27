@@ -7,7 +7,7 @@
 import { stripContactPii } from '@/lib/data/selectors';
 import { getStore, PAGE_SIZE } from '@/lib/data/store';
 import type { LocationFilters } from '@/lib/data/types';
-import { EMERGENCY_STATUSES, NEED_CATEGORIES } from '@/lib/data/types';
+import { EMERGENCY_STATUSES, NEED_CATEGORIES, URGENCIES } from '@/lib/data/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,7 @@ export async function GET(request: Request): Promise<Response> {
   const ciudad = searchParams.get('ciudad') ?? undefined;
   const rawStatus = searchParams.get('status');
   const rawCategoria = searchParams.get('categoria');
-  const rawSoloUrgentes = searchParams.get('soloUrgentes');
+  const rawUrgencia = searchParams.get('urgencia');
   const texto = searchParams.get('texto') ?? undefined;
   const all = searchParams.get('all') === 'true';
   const cursor = Math.max(0, parseInt(searchParams.get('cursor') ?? '0', 10) || 0);
@@ -32,7 +32,9 @@ export async function GET(request: Request): Promise<Response> {
   if (rawCategoria && (NEED_CATEGORIES as readonly string[]).includes(rawCategoria)) {
     filters.categoria = rawCategoria as LocationFilters['categoria'];
   }
-  if (rawSoloUrgentes === 'true') filters.soloUrgentes = true;
+  if (rawUrgencia && (URGENCIES as readonly string[]).includes(rawUrgencia)) {
+    filters.urgencia = rawUrgencia as LocationFilters['urgencia'];
+  }
   if (texto) filters.texto = texto;
 
   // all=true: map surface needs every matching zone; Infinity tells the store

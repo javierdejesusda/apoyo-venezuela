@@ -40,7 +40,7 @@ export function matchesFilters(loc: LocationWithNeeds, f: LocationFilters): bool
   if (f.ciudad && loc.ciudad !== f.ciudad) return false;
   if (f.status && loc.status !== f.status) return false;
   if (f.categoria && !loc.needs.some((n) => n.categoria === f.categoria)) return false;
-  if (f.soloUrgentes && loc.summary.urgentes <= 0) return false;
+  if (f.urgencia && !loc.needs.some((n) => n.urgencia === f.urgencia && n.status !== 'cubierto')) return false;
   if (f.texto) {
     const q = f.texto.trim().toLowerCase();
     if (q) {

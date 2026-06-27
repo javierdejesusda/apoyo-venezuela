@@ -73,8 +73,31 @@ describe('applyFilters', () => {
     expect(applyFilters(locations, { categoria: 'rescate' }).map((l) => l.id)).toEqual(['a']);
   });
 
-  it('filters by urgent-only', () => {
-    expect(applyFilters(locations, { soloUrgentes: true }).map((l) => l.id)).toEqual(['a']);
+  it('filters by urgencia alta', () => {
+    expect(applyFilters(locations, { urgencia: 'alta' }).map((l) => l.id)).toEqual(['a']);
+  });
+
+  it('filters by urgencia baja', () => {
+    expect(applyFilters(locations, { urgencia: 'baja' }).map((l) => l.id)).toEqual(['b']);
+  });
+
+  it('filters by urgencia media', () => {
+    const withMedia = [
+      withSummary(baseLocation({ id: 'm', estado: 'Lara', ciudad: 'Barquisimeto', status: 'estable' }), [
+        need({ id: 'nm', locationId: 'm', categoria: 'agua', urgencia: 'media' }),
+      ]),
+      ...locations,
+    ];
+    expect(applyFilters(withMedia, { urgencia: 'media' }).map((l) => l.id)).toEqual(['m']);
+  });
+
+  it('excludes a zone whose only matching-urgency need is cubierto', () => {
+    const withCubierto = [
+      withSummary(baseLocation({ id: 'x', estado: 'Lara', ciudad: 'Barquisimeto', status: 'estable' }), [
+        need({ id: 'nx', locationId: 'x', urgencia: 'alta', status: 'cubierto' }),
+      ]),
+    ];
+    expect(applyFilters(withCubierto, { urgencia: 'alta' }).map((l) => l.id)).toEqual([]);
   });
 
   it('filters by free text across name and city', () => {

@@ -198,7 +198,7 @@ export interface LocationFilters {
   ciudad?: string;
   status?: EmergencyStatus;
   categoria?: NeedCategory;
-  soloUrgentes?: boolean;
+  urgencia?: Urgency;
   texto?: string;
 }
 

@@ -103,14 +103,27 @@ describe('GET /api/zonas', () => {
     );
   });
 
-  it('passes soloUrgentes filter as boolean to the store', async () => {
+  it('passes urgencia filter as string to the store', async () => {
     mockListLocationsPage.mockResolvedValue({ items: [], total: 0 });
 
-    const req = new Request('http://localhost/api/zonas?soloUrgentes=true');
+    const req = new Request('http://localhost/api/zonas?urgencia=alta');
     await GET(req);
 
     expect(mockListLocationsPage).toHaveBeenCalledWith(
-      expect.objectContaining({ soloUrgentes: true }),
+      expect.objectContaining({ urgencia: 'alta' }),
+      0,
+      20,
+    );
+  });
+
+  it('does not forward an invalid urgencia value to the store', async () => {
+    mockListLocationsPage.mockResolvedValue({ items: [], total: 0 });
+
+    const req = new Request('http://localhost/api/zonas?urgencia=foo');
+    await GET(req);
+
+    expect(mockListLocationsPage).toHaveBeenCalledWith(
+      expect.not.objectContaining({ urgencia: expect.anything() }),
       0,
       20,
     );

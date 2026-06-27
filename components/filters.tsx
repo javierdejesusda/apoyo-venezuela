@@ -2,11 +2,11 @@
 
 import { type ReactNode } from 'react';
 
-import { Search, TriangleAlert, X, type LucideIcon } from 'lucide-react';
+import { Search, X, type LucideIcon } from 'lucide-react';
 
 import { Input, Select } from '@/components/ui/form';
-import { EMERGENCY_STATUSES, type LocationFilters } from '@/lib/data/types';
-import { statusMeta } from '@/lib/status';
+import { EMERGENCY_STATUSES, NEED_CATEGORIES, URGENCIES, type LocationFilters } from '@/lib/data/types';
+import { categoryMeta, statusMeta, toneClasses, urgencyMeta, type Tone } from '@/lib/status';
 import { cn } from '@/lib/utils';
 
 interface FiltersProps {
@@ -17,7 +17,7 @@ interface FiltersProps {
   resultCount: number;
 }
 
-/** Search + status + state filtering for the home explorer. */
+/** Search + status + needs filtering for the home explorer. */
 export function Filters({
   value,
   onChange,
@@ -31,7 +31,7 @@ export function Filters({
       value.estado ||
       value.ciudad ||
       value.status ||
-      value.soloUrgentes ||
+      value.urgencia ||
       value.categoria,
   );
 
@@ -53,7 +53,11 @@ export function Filters({
         />
       </div>
 
-      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+      <div
+        role="group"
+        aria-label="Filtrar por estado estructural"
+        className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+      >
         <FilterChip active={!value.status} onClick={() => set({ status: undefined })}>
           Todas
         </FilterChip>
@@ -69,25 +73,59 @@ export function Filters({
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <label
-          className={cn(
-            'inline-flex h-10 cursor-pointer select-none items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors sm:h-9',
-            value.soloUrgentes
-              ? 'border-danger/30 bg-danger/10 text-danger'
-              : 'border-border-strong bg-surface text-ink-soft hover:text-ink',
-          )}
-        >
-          <input
-            type="checkbox"
-            className="sr-only"
-            checked={Boolean(value.soloUrgentes)}
-            onChange={(event) => set({ soloUrgentes: event.target.checked || undefined })}
-          />
-          <TriangleAlert className="h-4 w-4" aria-hidden />
-          Solo urgentes
-        </label>
+      <div className="space-y-2 rounded-xl border border-border bg-surface/50 p-2.5">
+        <p className="px-0.5 text-xs font-medium text-ink-soft">Necesidades de ayuda</p>
 
+        <div
+          role="group"
+          aria-label="Filtrar por categoría"
+          className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+        >
+          <FilterChip active={!value.categoria} onClick={() => set({ categoria: undefined })}>
+            Todas
+          </FilterChip>
+          {NEED_CATEGORIES.map((cat) => (
+            <FilterChip
+              key={cat}
+              active={value.categoria === cat}
+              icon={categoryMeta[cat].icon}
+              onClick={() =>
+                set({ categoria: value.categoria === cat ? undefined : cat })
+              }
+            >
+              {categoryMeta[cat].label}
+            </FilterChip>
+          ))}
+        </div>
+
+        <div
+          role="group"
+          aria-label="Filtrar por urgencia"
+          className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+        >
+          <FilterChip active={!value.urgencia} onClick={() => set({ urgencia: undefined })}>
+            Todas
+          </FilterChip>
+          {URGENCIES.map((u) => {
+            const meta = urgencyMeta[u];
+            return (
+              <UrgencyFilterChip
+                key={u}
+                active={value.urgencia === u}
+                tone={meta.tone}
+                icon={meta.icon}
+                onClick={() =>
+                  set({ urgencia: value.urgencia === u ? undefined : u })
+                }
+              >
+                {meta.label}
+              </UrgencyFilterChip>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-40 flex-1 sm:flex-none">
           <Select
             value={value.estado ?? ''}
@@ -161,11 +199,42 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        'inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-medium transition-colors sm:h-9',
+        'inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-1 sm:h-9',
         active
           ? 'border-brand-600 bg-brand-600 text-white'
           : 'border-border-strong bg-surface text-ink-soft hover:text-ink',
+      )}
+    >
+      {Icon && <Icon className="h-4 w-4" aria-hidden />}
+      {children}
+    </button>
+  );
+}
+
+function UrgencyFilterChip({
+  active,
+  onClick,
+  children,
+  tone,
+  icon: Icon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+  tone: Tone;
+  icon?: LucideIcon;
+}) {
+  const tc = toneClasses(tone);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        'inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-1 sm:h-9',
+        active ? tc.solid : cn('bg-surface', tc.border, tc.text, 'hover:opacity-80'),
       )}
     >
       {Icon && <Icon className="h-4 w-4" aria-hidden />}

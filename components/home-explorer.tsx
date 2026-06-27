@@ -44,7 +44,7 @@ function buildZonasUrl(
   if (filters.ciudad) params.set('ciudad', filters.ciudad);
   if (filters.status) params.set('status', filters.status);
   if (filters.categoria) params.set('categoria', filters.categoria);
-  if (filters.soloUrgentes) params.set('soloUrgentes', 'true');
+  if (filters.urgencia) params.set('urgencia', filters.urgencia);
   if (filters.texto) params.set('texto', filters.texto);
   if (options.all) {
     params.set('all', 'true');
