@@ -54,6 +54,15 @@ describe('HomeHero', () => {
     expect(container.querySelectorAll('[style*="left:"]')).toHaveLength(0);
   });
 
+  // The pulsing red status dot was removed from the eyebrow: the emergency line
+  // is now plain text, so no `.live-ping` element and no child span survive in it.
+  it('renders the eyebrow without the red live status dot', () => {
+    const { container } = render(<HomeHero stats={STATS} />);
+    expect(container.querySelector('.live-ping')).toBeNull();
+    const eyebrow = screen.getByText(/Emergencia activa/i);
+    expect(eyebrow.querySelector('span')).toBeNull();
+  });
+
   // The situation board takes a distinct light treatment: the headline accent is
   // dark brand-blue on the light panel and only switches to the pale brand tint
   // in dark mode, so the highlight must be theme-aware rather than one fixed hue.

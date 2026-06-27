@@ -57,11 +57,7 @@ export function HomeHero({ stats }: { stats: GlobalStats }) {
       <HeroBackdrop />
 
       <div className="relative px-6 pb-6 pt-7 sm:px-8 sm:pb-8 sm:pt-9">
-        <p className="animate-fade-up eyebrow flex items-center gap-2 text-hero-ink-soft">
-          <span className="relative flex h-2 w-2 items-center justify-center">
-            <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-danger" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-danger" />
-          </span>
+        <p className="animate-fade-up eyebrow text-hero-ink-soft">
           Emergencia activa · sismo del 24 jun 2026
         </p>
 
