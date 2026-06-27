@@ -1,6 +1,7 @@
 import { HomeExplorer } from '@/components/home-explorer';
 import { HomeHero } from '@/components/home-hero';
 import { MissingPersonsLink } from '@/components/missing-persons-link';
+import { RescueAdvisory } from '@/components/rescue-advisory';
 import { SeismicTicker } from '@/components/seismic-ticker';
 import { SharePanel } from '@/components/share-panel';
 import { loadHomeData } from '@/lib/data/home';
@@ -36,6 +37,8 @@ export default async function HomePage() {
       <SeismicTicker sismos={sismos} />
 
       <HomeHero stats={stats} />
+
+      <RescueAdvisory />
 
       <MissingPersonsLink variant="card" />
 
