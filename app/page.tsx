@@ -25,6 +25,12 @@ export default async function HomePage() {
   const initialLocations = mapLocations.slice(0, PAGE_SIZE);
   const initialTotal = mapLocations.length;
 
+  // Tab badge counts: ayuda = zones with any open need; danos = total zones.
+  const ayudaCount = mapLocations.filter(
+    (l) => l.summary.pendientes + l.summary.enCamino > 0,
+  ).length;
+  const danosCount = mapLocations.length;
+
   return (
     <div className="space-y-6">
       <SeismicTicker sismos={sismos} />
@@ -52,6 +58,8 @@ export default async function HomePage() {
         states={states}
         ciudadesByEstado={ciudadesByEstado}
         sismos={sismos}
+        ayudaCount={ayudaCount}
+        danosCount={danosCount}
       />
     </div>
   );

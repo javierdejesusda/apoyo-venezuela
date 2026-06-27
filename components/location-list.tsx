@@ -1,15 +1,17 @@
 import { MapPinned } from 'lucide-react';
 
 import { LocationCard } from '@/components/location-card';
-import type { LocationWithNeeds } from '@/lib/data/types';
+import type { ExplorerMode, LocationWithNeeds } from '@/lib/data/types';
 
 /** Responsive grid of zone cards with an empty state. */
 export function LocationList({
   locations,
   emptyHint,
+  mode = 'danos',
 }: {
   locations: LocationWithNeeds[];
   emptyHint?: string;
+  mode?: ExplorerMode;
 }) {
   if (locations.length === 0) {
     return (
@@ -30,7 +32,7 @@ export function LocationList({
     // plus its details; two columns only once the container is wide enough.
     <div className="grid gap-3 lg:grid-cols-2">
       {locations.map((location) => (
-        <LocationCard key={location.id} location={location} />
+        <LocationCard key={location.id} location={location} mode={mode} />
       ))}
     </div>
   );

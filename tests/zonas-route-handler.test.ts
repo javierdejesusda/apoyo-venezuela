@@ -240,3 +240,44 @@ describe('GET /api/zonas with all=true', () => {
     expect(mockListLocationsPage).toHaveBeenCalledWith({}, 0, 20);
   });
 });
+
+describe('GET /api/zonas soloConPedidos filter', () => {
+  it('passes soloConPedidos:true to the store when param is "true"', async () => {
+    mockListLocationsPage.mockResolvedValue({ items: [], total: 0 });
+
+    const req = new Request('http://localhost/api/zonas?soloConPedidos=true');
+    await GET(req);
+
+    expect(mockListLocationsPage).toHaveBeenCalledWith(
+      expect.objectContaining({ soloConPedidos: true }),
+      0,
+      20,
+    );
+  });
+
+  it('does not set soloConPedidos when param is absent', async () => {
+    mockListLocationsPage.mockResolvedValue({ items: [], total: 0 });
+
+    const req = new Request('http://localhost/api/zonas');
+    await GET(req);
+
+    expect(mockListLocationsPage).toHaveBeenCalledWith(
+      expect.not.objectContaining({ soloConPedidos: expect.anything() }),
+      0,
+      20,
+    );
+  });
+
+  it('does not set soloConPedidos when param is "false"', async () => {
+    mockListLocationsPage.mockResolvedValue({ items: [], total: 0 });
+
+    const req = new Request('http://localhost/api/zonas?soloConPedidos=false');
+    await GET(req);
+
+    expect(mockListLocationsPage).toHaveBeenCalledWith(
+      expect.not.objectContaining({ soloConPedidos: expect.anything() }),
+      0,
+      20,
+    );
+  });
+});

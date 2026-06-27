@@ -14,6 +14,8 @@ vi.mock('@/components/map-view', () => ({
   ),
 }));
 
+// Zones default to having one open need so they pass the ayuda soloConPedidos
+// filter that seeded state applies on mount.
 function loc(id: string, over: Partial<LocationWithNeeds> = {}): LocationWithNeeds {
   return {
     id,
@@ -27,7 +29,7 @@ function loc(id: string, over: Partial<LocationWithNeeds> = {}): LocationWithNee
     createdAt: '2026-06-24T22:10:00Z',
     updatedAt: '2026-06-24T22:10:00Z',
     needs: [],
-    summary: { total: 0, pendientes: 0, enCamino: 0, cubiertos: 0, urgentes: 0 },
+    summary: { total: 1, pendientes: 1, enCamino: 0, cubiertos: 0, urgentes: 0 },
     ...over,
   };
 }

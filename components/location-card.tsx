@@ -5,7 +5,8 @@ import { ChevronRight, MapPin } from 'lucide-react';
 import { PhotoCarousel } from '@/components/photo-carousel';
 import { CategoryChip, PersonasAtrapadasBadge, StatusBadge } from '@/components/status-badges';
 import { ZonePhoto } from '@/components/zone-photo';
-import type { LocationWithNeeds } from '@/lib/data/types';
+import type { ExplorerMode, LocationWithNeeds } from '@/lib/data/types';
+import { statusMeta } from '@/lib/status';
 
 /**
  * Summary card linking to a single emergency zone: a large cover photo beside
@@ -15,13 +16,20 @@ import type { LocationWithNeeds } from '@/lib/data/types';
  * are never nested inside an anchor (invalid HTML). The details Link is the
  * primary interactive element and carries the accessible card name.
  */
-export function LocationCard({ location }: { location: LocationWithNeeds }) {
+export function LocationCard({
+  location,
+  mode = 'danos',
+}: {
+  location: LocationWithNeeds;
+  mode?: ExplorerMode;
+}) {
   const { summary } = location;
   const openNeeds = location.needs.filter((need) => need.status !== 'cubierto');
   const categories = Array.from(new Set(openNeeds.map((need) => need.categoria))).slice(0, 3);
   const place = [location.zona, location.ciudad, location.estado].filter(Boolean).join(', ');
   const fotos = location.fotos ?? [];
   const cover = fotos[0];
+  const isAyuda = mode === 'ayuda';
 
   return (
     <div className="group flex min-w-0 gap-4 rounded-2xl border border-border bg-surface p-4 shadow-card transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lift">
@@ -32,10 +40,8 @@ export function LocationCard({ location }: { location: LocationWithNeeds }) {
           {fotos.length > 1 ? (
             <PhotoCarousel fotos={fotos} />
           ) : (
-            // Single cover: decorative link that mirrors the card navigation so
-            // clicking the photo still navigates; aria-hidden + tabIndex=-1 keeps
-            // it out of the accessibility tree (the details Link is the only
-            // accessible link and carries the card name).
+            // Single cover: decorative link so clicking the photo navigates; aria-hidden +
+            // tabIndex=-1 keeps it out of the a11y tree (the details Link carries the name).
             <Link href={`/zona/${location.id}`} aria-hidden tabIndex={-1}>
               <ZonePhoto src={cover} alt="" size={400} />
             </Link>
@@ -59,10 +65,16 @@ export function LocationCard({ location }: { location: LocationWithNeeds }) {
               <span className="truncate">{place}</span>
             </p>
           </div>
-          <StatusBadge status={location.status} size="sm" />
+          {isAyuda ? (
+            <p className="mt-0.5 shrink-0 text-xs text-ink-soft">
+              Edificio: {statusMeta[location.status]?.label ?? location.status}
+            </p>
+          ) : (
+            <StatusBadge status={location.status} size="sm" />
+          )}
         </div>
 
-        {location.personas_atrapadas === 'si' && (
+        {!isAyuda && location.personas_atrapadas === 'si' && (
           <div className="mt-2">
             <PersonasAtrapadasBadge value={location.personas_atrapadas} />
           </div>
@@ -84,14 +96,28 @@ export function LocationCard({ location }: { location: LocationWithNeeds }) {
         )}
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pt-3 text-xs text-ink-soft">
-          <span>
-            <span className="tabular font-medium text-ink-soft">{summary.total}</span> necesidades
-            {summary.urgentes > 0 && (
-              <span className="text-danger"> · {summary.urgentes} urgentes</span>
-            )}
-          </span>
+          {isAyuda ? (
+            <span>
+              {summary.urgentes > 0 ? (
+                <span className="font-medium text-danger tabular">
+                  {summary.urgentes} urgente{summary.urgentes !== 1 ? 's' : ''}
+                </span>
+              ) : (
+                <span className="tabular font-medium">{summary.pendientes + summary.enCamino}</span>
+              )}{' '}
+              {summary.urgentes > 0 ? 'sin cubrir' : 'pedidos abiertos'}
+            </span>
+          ) : (
+            <span>
+              <span className="tabular font-medium text-ink-soft">{summary.total}</span> necesidades
+              {summary.urgentes > 0 && (
+                <span className="text-danger"> · {summary.urgentes} urgentes</span>
+              )}
+            </span>
+          )}
           <span className="inline-flex items-center gap-1 text-brand-600 transition-all group-hover:gap-1.5">
-            Ver zona <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+            {isAyuda ? 'Ver pedidos de ayuda' : 'Ver zona'}{' '}
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden />
           </span>
         </div>
       </Link>

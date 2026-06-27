@@ -41,6 +41,7 @@ export function matchesFilters(loc: LocationWithNeeds, f: LocationFilters): bool
   if (f.status && loc.status !== f.status) return false;
   if (f.categoria && !loc.needs.some((n) => n.categoria === f.categoria)) return false;
   if (f.urgencia && !loc.needs.some((n) => n.urgencia === f.urgencia && n.status !== 'cubierto')) return false;
+  if (f.soloConPedidos && (loc.summary.pendientes + loc.summary.enCamino) === 0) return false;
   if (f.texto) {
     const q = f.texto.trim().toLowerCase();
     if (q) {
@@ -52,6 +53,21 @@ export function matchesFilters(loc: LocationWithNeeds, f: LocationFilters): bool
     }
   }
   return true;
+}
+
+/**
+ * Resolves a map pin tone for a location in ayuda (help-request) mode.
+ * Priority: alta open needs -> danger, media -> warning, everything else -> brand.
+ * Floor is brand because soloConPedidos ensures all ayuda-mode zones have open needs,
+ * so neutral ("sin pedidos") is unreachable in practice and removed to avoid confusion.
+ */
+export function resolveAyudaPinTone(
+  loc: LocationWithNeeds,
+): 'danger' | 'warning' | 'brand' {
+  const open = loc.needs.filter((n) => n.status !== 'cubierto');
+  if (open.some((n) => n.urgencia === 'alta')) return 'danger';
+  if (open.some((n) => n.urgencia === 'media')) return 'warning';
+  return 'brand';
 }
 
 export function applyFilters(

@@ -5,7 +5,7 @@ import { type ReactNode } from 'react';
 import { Search, X, type LucideIcon } from 'lucide-react';
 
 import { Input, Select } from '@/components/ui/form';
-import { EMERGENCY_STATUSES, NEED_CATEGORIES, URGENCIES, type LocationFilters } from '@/lib/data/types';
+import { EMERGENCY_STATUSES, NEED_CATEGORIES, URGENCIES, type ExplorerMode, type LocationFilters } from '@/lib/data/types';
 import { categoryMeta, statusMeta, toneClasses, urgencyMeta, type Tone } from '@/lib/status';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +15,7 @@ interface FiltersProps {
   states: string[];
   ciudadesByEstado?: Record<string, string[]>;
   resultCount: number;
+  mode?: ExplorerMode;
 }
 
 /** Search + status + needs filtering for the home explorer. */
@@ -24,6 +25,7 @@ export function Filters({
   states,
   ciudadesByEstado = {},
   resultCount,
+  mode = 'danos',
 }: FiltersProps) {
   const set = (patch: Partial<LocationFilters>) => onChange({ ...value, ...patch });
   const hasFilters = Boolean(
@@ -34,6 +36,7 @@ export function Filters({
       value.urgencia ||
       value.categoria,
   );
+  const isAyuda = mode === 'ayuda';
 
   return (
     <div className="space-y-3">
@@ -53,77 +56,81 @@ export function Filters({
         />
       </div>
 
-      <div
-        role="group"
-        aria-label="Filtrar por estado estructural"
-        className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
-      >
-        <FilterChip active={!value.status} onClick={() => set({ status: undefined })}>
-          Todas
-        </FilterChip>
-        {EMERGENCY_STATUSES.map((status) => (
-          <FilterChip
-            key={status}
-            active={value.status === status}
-            icon={statusMeta[status].icon}
-            onClick={() => set({ status: value.status === status ? undefined : status })}
-          >
-            {statusMeta[status].label}
-          </FilterChip>
-        ))}
-      </div>
-
-      <div className="space-y-2 rounded-xl border border-border bg-surface/50 p-2.5">
-        <p className="px-0.5 text-xs font-medium text-ink-soft">Necesidades de ayuda</p>
-
+      {!isAyuda && (
         <div
           role="group"
-          aria-label="Filtrar por categoría"
+          aria-label="Filtrar por estado estructural"
           className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
         >
-          <FilterChip active={!value.categoria} onClick={() => set({ categoria: undefined })}>
+          <FilterChip active={!value.status} onClick={() => set({ status: undefined })}>
             Todas
           </FilterChip>
-          {NEED_CATEGORIES.map((cat) => (
+          {EMERGENCY_STATUSES.map((status) => (
             <FilterChip
-              key={cat}
-              active={value.categoria === cat}
-              icon={categoryMeta[cat].icon}
-              onClick={() =>
-                set({ categoria: value.categoria === cat ? undefined : cat })
-              }
+              key={status}
+              active={value.status === status}
+              icon={statusMeta[status].icon}
+              onClick={() => set({ status: value.status === status ? undefined : status })}
             >
-              {categoryMeta[cat].label}
+              {statusMeta[status].label}
             </FilterChip>
           ))}
         </div>
+      )}
 
-        <div
-          role="group"
-          aria-label="Filtrar por urgencia"
-          className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
-        >
-          <FilterChip active={!value.urgencia} onClick={() => set({ urgencia: undefined })}>
-            Todas
-          </FilterChip>
-          {URGENCIES.map((u) => {
-            const meta = urgencyMeta[u];
-            return (
-              <UrgencyFilterChip
-                key={u}
-                active={value.urgencia === u}
-                tone={meta.tone}
-                icon={meta.icon}
+      {isAyuda && (
+        <div className="space-y-2 rounded-xl border border-border bg-surface/50 p-2.5">
+          <p className="px-0.5 text-xs font-medium text-ink-soft">Necesidades de ayuda</p>
+
+          <div
+            role="group"
+            aria-label="Filtrar por categoría"
+            className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+          >
+            <FilterChip active={!value.categoria} onClick={() => set({ categoria: undefined })}>
+              Todas
+            </FilterChip>
+            {NEED_CATEGORIES.map((cat) => (
+              <FilterChip
+                key={cat}
+                active={value.categoria === cat}
+                icon={categoryMeta[cat].icon}
                 onClick={() =>
-                  set({ urgencia: value.urgencia === u ? undefined : u })
+                  set({ categoria: value.categoria === cat ? undefined : cat })
                 }
               >
-                {meta.label}
-              </UrgencyFilterChip>
-            );
-          })}
+                {categoryMeta[cat].label}
+              </FilterChip>
+            ))}
+          </div>
+
+          <div
+            role="group"
+            aria-label="Filtrar por urgencia"
+            className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+          >
+            <FilterChip active={!value.urgencia} onClick={() => set({ urgencia: undefined })}>
+              Todas
+            </FilterChip>
+            {URGENCIES.map((u) => {
+              const meta = urgencyMeta[u];
+              return (
+                <UrgencyFilterChip
+                  key={u}
+                  active={value.urgencia === u}
+                  tone={meta.tone}
+                  icon={meta.icon}
+                  onClick={() =>
+                    set({ urgencia: value.urgencia === u ? undefined : u })
+                  }
+                >
+                  {meta.label}
+                </UrgencyFilterChip>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-40 flex-1 sm:flex-none">
@@ -169,7 +176,7 @@ export function Filters({
         {hasFilters && (
           <button
             type="button"
-            onClick={() => onChange({})}
+            onClick={() => onChange(mode === 'ayuda' ? { soloConPedidos: true } : {})}
             className="inline-flex h-10 items-center gap-1 rounded-full px-3 text-sm font-medium text-ink-soft transition-colors hover:text-ink sm:h-9"
           >
             <X className="h-4 w-4" aria-hidden /> Limpiar
@@ -178,7 +185,14 @@ export function Filters({
       </div>
 
       <p className="text-xs text-ink-faint" aria-live="polite">
-        {resultCount} {resultCount === 1 ? 'zona' : 'zonas'}
+        {resultCount}{' '}
+        {isAyuda
+          ? resultCount === 1
+            ? 'zona con pedidos'
+            : 'zonas con pedidos'
+          : resultCount === 1
+            ? 'zona'
+            : 'zonas'}
       </p>
     </div>
   );

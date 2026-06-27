@@ -26,7 +26,8 @@ import { PersonasAtrapadasBadge } from '@/components/status-badges';
 import { useTheme } from '@/components/theme-provider';
 import { transformedFotoUrl } from '@/lib/data/foto-url';
 import { resolveMapCoords } from '@/lib/data/geo';
-import type { LocationWithNeeds } from '@/lib/data/types';
+import { resolveAyudaPinTone } from '@/lib/data/selectors';
+import type { ExplorerMode, LocationWithNeeds } from '@/lib/data/types';
 import { EMERGENCY_STATUSES } from '@/lib/data/types';
 import {
   computePreviewPlacement,
@@ -50,6 +51,8 @@ export interface MapViewProps {
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   className?: string;
+  /** Controls pin coloring and legend: 'ayuda' shows need-urgency tones; 'danos' shows structural status. */
+  mode?: ExplorerMode;
 }
 
 /** Hover-preview state: the location under the cursor and the pin's pixel point. */
@@ -229,13 +232,20 @@ function GeolocationButton(): React.JSX.Element {
   );
 }
 
+const AYUDA_LEGEND_ITEMS = [
+  { tone: 'danger', label: 'Urgencia alta' },
+  { tone: 'warning', label: 'Urgencia media' },
+  { tone: 'brand', label: 'Baja / sin urgencia' },
+] as const;
+
 /**
- * Compact overlay listing all five statuses with color swatch + label.
- * Below sm it collapses to an "Estado" pill so it never covers top-right pins;
+ * Compact overlay listing statuses with color swatch + label.
+ * Below sm it collapses to a pill so it never covers top-right pins;
  * at sm and up it stays open.
  */
-function Legend(): React.JSX.Element {
+function Legend({ mode = 'danos' }: { mode?: ExplorerMode }): React.JSX.Element {
   const [open, setOpen] = useState(false);
+  const title = mode === 'ayuda' ? 'Urgencia' : 'Estado';
 
   return (
     <div className="absolute top-3 right-3 z-[1000]">
@@ -252,7 +262,7 @@ function Legend(): React.JSX.Element {
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600',
         ].join(' ')}
       >
-        Estado
+        {title}
       </button>
 
       <div
@@ -266,23 +276,34 @@ function Legend(): React.JSX.Element {
         ].join(' ')}
       >
         <p id="map-legend-heading" className="eyebrow text-ink-faint mb-1.5">
-          Estado
+          {title}
         </p>
         <ul id="map-legend-list" aria-labelledby="map-legend-heading" className="space-y-1" role="list">
-          {EMERGENCY_STATUSES.map((s) => {
-            const meta = statusMeta[s];
-            const hex = TONE_HEX[meta.tone];
-            return (
-              <li key={s} className="flex items-center gap-1.5">
-                <span
-                  aria-hidden="true"
-                  style={{ backgroundColor: hex }}
-                  className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
-                />
-                <span className="text-ink-soft leading-none">{meta.label}</span>
-              </li>
-            );
-          })}
+          {mode === 'ayuda'
+            ? AYUDA_LEGEND_ITEMS.map((item) => (
+                <li key={item.tone} className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    style={{ backgroundColor: TONE_HEX[item.tone] }}
+                    className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                  />
+                  <span className="text-ink-soft leading-none">{item.label}</span>
+                </li>
+              ))
+            : EMERGENCY_STATUSES.map((s) => {
+                const meta = statusMeta[s];
+                const hex = TONE_HEX[meta.tone];
+                return (
+                  <li key={s} className="flex items-center gap-1.5">
+                    <span
+                      aria-hidden="true"
+                      style={{ backgroundColor: hex }}
+                      className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                    />
+                    <span className="text-ink-soft leading-none">{meta.label}</span>
+                  </li>
+                );
+              })}
         </ul>
       </div>
     </div>
@@ -398,6 +419,7 @@ export default function MapView({
   selectedId,
   onSelect,
   className,
+  mode = 'danos',
 }: MapViewProps): React.JSX.Element {
   const markerRefs = useRef<Map<string, L.Marker>>(new Map());
   const valid = useMemo(() => resolvePoints(locations), [locations]);
@@ -414,35 +436,50 @@ export default function MapView({
     ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
     : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
 
-  // Bound the pulse to the selected pin plus the most urgent derrumbe zones so
-  // we never run dozens of infinite animations at once.
+  // Bound the pulse to the selected pin plus the most critical zones (capped at
+  // MAX_PULSING so we never run dozens of infinite animations at once).
+  // ayuda mode: pulse top-5 zones by open alta needs.
+  // danos mode: pulse top-5 derrumbe zones.
   const pulsingIds = useMemo(() => {
     const ids = new Set<string>();
     if (reducedMotion) return ids;
     if (selectedId) ids.add(selectedId);
-    const topDerrumbe = valid
-      .filter((p) => p.loc.status === 'derrumbe')
-      .sort(
-        (a, b) =>
-          b.loc.summary.urgentes - a.loc.summary.urgentes ||
-          b.loc.summary.total - a.loc.summary.total,
-      )
-      .slice(0, MAX_PULSING);
-    for (const p of topDerrumbe) ids.add(p.loc.id);
+    if (mode === 'ayuda') {
+      const topAlta = valid
+        .filter((p) => p.loc.needs.some((n) => n.urgencia === 'alta' && n.status !== 'cubierto'))
+        .sort((a, b) => b.loc.summary.urgentes - a.loc.summary.urgentes)
+        .slice(0, MAX_PULSING);
+      for (const p of topAlta) ids.add(p.loc.id);
+    } else {
+      const topDerrumbe = valid
+        .filter((p) => p.loc.status === 'derrumbe')
+        .sort(
+          (a, b) =>
+            b.loc.summary.urgentes - a.loc.summary.urgentes ||
+            b.loc.summary.total - a.loc.summary.total,
+        )
+        .slice(0, MAX_PULSING);
+      for (const p of topDerrumbe) ids.add(p.loc.id);
+    }
     return ids;
-  }, [valid, selectedId, reducedMotion]);
+  }, [valid, selectedId, reducedMotion, mode]);
 
   // Memoize icons so markers do not rebuild a DivIcon on every render.
+  // ayuda mode: pin color reflects need urgency via resolveAyudaPinTone.
+  // danos mode: pin color reflects structural status as before.
   const iconCache = useMemo(() => {
     const cache = new Map<string, L.DivIcon>();
     for (const { loc } of valid) {
-      const hex = TONE_HEX[resolveStatusMeta(loc.status).tone];
+      const hex =
+        mode === 'ayuda'
+          ? TONE_HEX[resolveAyudaPinTone(loc)]
+          : TONE_HEX[resolveStatusMeta(loc.status).tone];
       const isSelected = loc.id === selectedId;
       const shouldPulse = pulsingIds.has(loc.id);
       cache.set(loc.id, buildPinIcon(hex, isSelected, shouldPulse));
     }
     return cache;
-  }, [valid, selectedId, pulsingIds]);
+  }, [valid, selectedId, pulsingIds, mode]);
 
   // Epicenter icons sized/colored by magnitude; the newest and strong quakes
   // pulse. Memoized so DivIcons are not rebuilt on every render.
@@ -483,7 +520,7 @@ export default function MapView({
 
         <GeolocationButton />
 
-        <Legend />
+        <Legend mode={mode} />
 
         {canHover && <ClearHoverOnMove onClear={clearHover} />}
 

@@ -1,16 +1,17 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import dynamic from 'next/dynamic';
 
 import { Filters } from '@/components/filters';
 import { LocationList } from '@/components/location-list';
+import { ModeTabs } from '@/components/mode-tabs';
 import { MapSkeleton } from '@/components/ui/map-skeleton';
 import { ViewToggle, type HomeView } from '@/components/view-toggle';
 import { applyFilters, sortLocations } from '@/lib/data/selectors';
 import { PAGE_SIZE } from '@/lib/data/store';
-import type { LocationFilters, LocationWithNeeds } from '@/lib/data/types';
+import type { ExplorerMode, LocationFilters, LocationWithNeeds } from '@/lib/data/types';
 import type { Sismo } from '@/lib/sismos/types';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
@@ -46,6 +47,7 @@ function buildZonasUrl(
   if (filters.categoria) params.set('categoria', filters.categoria);
   if (filters.urgencia) params.set('urgencia', filters.urgencia);
   if (filters.texto) params.set('texto', filters.texto);
+  if (filters.soloConPedidos) params.set('soloConPedidos', 'true');
   if (options.all) {
     params.set('all', 'true');
   } else {
@@ -53,6 +55,10 @@ function buildZonasUrl(
   }
   return `/api/zonas?${params.toString()}`;
 }
+
+// Ayuda mode always seeds with soloConPedidos — hoisted so useMemo can reference
+// a stable object identity and avoid recomputing the filtered set on every render.
+const DEFAULT_AYUDA_FILTERS: LocationFilters = { soloConPedidos: true };
 
 /**
  * Client shell that filters zones and switches between the map and the list.
@@ -71,6 +77,8 @@ export function HomeExplorer({
   states,
   ciudadesByEstado = {},
   sismos = [],
+  ayudaCount = 0,
+  danosCount = 0,
 }: {
   initialLocations: LocationWithNeeds[];
   /**
@@ -84,19 +92,34 @@ export function HomeExplorer({
   ciudadesByEstado?: Record<string, string[]>;
   /** Recent earthquakes to plot as epicenters on the map surface. */
   sismos?: Sismo[];
+  /** Count of zones with open needs, for the ayuda tab badge. */
+  ayudaCount?: number;
+  /** Total zones count, for the danos tab badge. */
+  danosCount?: number;
 }) {
   const mapInitial = initialMapLocations ?? initialLocations;
 
-  const [filters, setFilters] = useState<LocationFilters>({});
+  // Always start in ayuda mode so the server-rendered HTML matches the ISR-cached
+  // page. The URL is read once after hydration (useEffect below) to switch to danos
+  // if the user deep-linked to /?m=danos, avoiding any hydration mismatch.
+  // Memoized: re-renders from pin-clicks, keystrokes, and view-toggles no longer
+  // recompute sortLocations(applyFilters(...)) over the full ~800-location set.
+  const seeded = useMemo(
+    () => sortLocations(applyFilters(mapInitial, DEFAULT_AYUDA_FILTERS)),
+    [mapInitial],
+  );
+
+  const [mode, setMode] = useState<ExplorerMode>('ayuda');
+  const [filters, setFilters] = useState<LocationFilters>(DEFAULT_AYUDA_FILTERS);
   const [view, setView] = useState<HomeView>('mapa');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [displayed, setDisplayed] = useState<LocationWithNeeds[]>(initialLocations);
-  const [total, setTotal] = useState(initialTotal);
-  const [cursorOffset, setCursorOffset] = useState(initialLocations.length);
+  const [displayed, setDisplayed] = useState<LocationWithNeeds[]>(() => seeded.slice(0, PAGE_SIZE));
+  const [total, setTotal] = useState(seeded.length);
+  const [cursorOffset, setCursorOffset] = useState(() => Math.min(seeded.length, PAGE_SIZE));
   // The default map data is already embedded, so nothing is loading on mount.
   const [loading, setLoading] = useState(false);
   // mapLocations holds the full matching set for the map surface.
-  const [mapLocations, setMapLocations] = useState<LocationWithNeeds[]>(mapInitial);
+  const [mapLocations, setMapLocations] = useState<LocationWithNeeds[]>(seeded);
 
   // Monotonic counter: every dispatch increments this; stale resolves are
   // detected by comparing the captured id to the current value.
@@ -167,6 +190,34 @@ export function HomeExplorer({
     [initialLocations, initialTotal, dispatch],
   );
 
+  const handleModeChange = useCallback(
+    (newMode: ExplorerMode): void => {
+      setMode(newMode);
+      // Keep universal filters, drop mode-specific ones, inject the new invariant.
+      const base: LocationFilters = {
+        texto: filters.texto,
+        estado: filters.estado,
+        ciudad: filters.ciudad,
+      };
+      const newFilters: LocationFilters =
+        newMode === 'ayuda' ? { ...base, soloConPedidos: true } : base;
+      handleFilterChange(newFilters);
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', `?m=${newMode}`);
+      }
+    },
+    [filters, handleFilterChange],
+  );
+
+  // One-time URL sync: if the user deep-linked to /?m=danos, switch client-side
+  // after hydration so the server HTML (always ayuda) matches the ISR cache.
+  useEffect(() => {
+    const m = new URLSearchParams(window.location.search).get('m');
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate external-state sync (URL -> React)
+    if (m === 'danos') handleModeChange('danos');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- empty deps intentional: one-time URL read on mount
+  }, []);
+
   const handleLoadMore = useCallback((): void => {
     dispatch(buildZonasUrl(filters, { cursor: cursorOffset }), (data) => {
       setDisplayed((prev) => [...prev, ...data.items]);
@@ -191,14 +242,25 @@ export function HomeExplorer({
 
   const remaining = total - displayed.length;
 
+  const sectionLabel =
+    mode === 'ayuda' ? 'Pedidos de ayuda activos' : 'Reportes de daño estructural';
+
   return (
-    <section className="space-y-4">
+    <section className="space-y-4" aria-label={sectionLabel}>
+      <ModeTabs
+        mode={mode}
+        onChange={handleModeChange}
+        ayudaCount={ayudaCount}
+        danosCount={danosCount}
+      />
+
       <Filters
         value={filters}
         onChange={handleFilterChange}
         states={states}
         ciudadesByEstado={ciudadesByEstado}
         resultCount={total}
+        mode={mode}
       />
 
       <div className="flex items-center justify-between gap-3">
@@ -221,6 +283,7 @@ export function HomeExplorer({
                   selectedId={selectedId}
                   onSelect={setSelectedId}
                   className="h-full w-full"
+                  mode={mode}
                 />
               )}
             </div>
@@ -234,6 +297,7 @@ export function HomeExplorer({
           <LocationList
             locations={displayed}
             emptyHint="Ajusta los filtros o reporta una zona nueva."
+            mode={mode}
           />
           {remaining > 0 && (
             <div className="mt-4 flex justify-center">

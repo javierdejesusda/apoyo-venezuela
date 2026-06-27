@@ -5,6 +5,7 @@ import {
   applyFilters,
   buildSummary,
   globalStats,
+  resolveAyudaPinTone,
   sortLocations,
   withSummary,
 } from '@/lib/data/selectors';
@@ -192,5 +193,94 @@ describe('globalStats', () => {
     // derrumbes + danoGrave + danoParcial accounts for all non-estable non-desconocido
     expect(sum).toBe(3);
     expect(stats.zonas).toBe(5);
+  });
+});
+
+describe('applyFilters soloConPedidos', () => {
+  const withOpen = withSummary(baseLocation({ id: 'open' }), [
+    need({ id: 'n1', locationId: 'open', status: 'pendiente' }),
+  ]);
+  const withEnCamino = withSummary(baseLocation({ id: 'en_camino' }), [
+    need({ id: 'n2', locationId: 'en_camino', status: 'en_camino' }),
+  ]);
+  const onlyCubierto = withSummary(baseLocation({ id: 'closed' }), [
+    need({ id: 'n3', locationId: 'closed', status: 'cubierto' }),
+  ]);
+  const noNeeds = withSummary(baseLocation({ id: 'none' }), []);
+
+  it('keeps zones with pendiente needs', () => {
+    expect(applyFilters([withOpen], { soloConPedidos: true }).map((l) => l.id)).toEqual(['open']);
+  });
+
+  it('keeps zones with en_camino needs', () => {
+    expect(applyFilters([withEnCamino], { soloConPedidos: true }).map((l) => l.id)).toEqual(['en_camino']);
+  });
+
+  it('excludes zones whose only needs are cubierto', () => {
+    expect(applyFilters([onlyCubierto], { soloConPedidos: true })).toHaveLength(0);
+  });
+
+  it('excludes zones with no needs at all', () => {
+    expect(applyFilters([noNeeds], { soloConPedidos: true })).toHaveLength(0);
+  });
+
+  it('returns only open zones from a mixed set', () => {
+    const result = applyFilters([withOpen, withEnCamino, onlyCubierto, noNeeds], { soloConPedidos: true });
+    expect(result.map((l) => l.id)).toEqual(['open', 'en_camino']);
+  });
+
+  it('does not filter when soloConPedidos is absent', () => {
+    expect(applyFilters([withOpen, noNeeds])).toHaveLength(2);
+  });
+});
+
+describe('resolveAyudaPinTone', () => {
+  it('returns danger when there is an open alta-urgency need', () => {
+    const loc = withSummary(baseLocation({ id: 'a' }), [
+      need({ id: 'n', locationId: 'a', urgencia: 'alta', status: 'pendiente' }),
+    ]);
+    expect(resolveAyudaPinTone(loc)).toBe('danger');
+  });
+
+  it('returns warning when highest open urgency is media', () => {
+    const loc = withSummary(baseLocation({ id: 'b' }), [
+      need({ id: 'n', locationId: 'b', urgencia: 'media', status: 'pendiente' }),
+    ]);
+    expect(resolveAyudaPinTone(loc)).toBe('warning');
+  });
+
+  it('returns brand when only baja open needs exist', () => {
+    const loc = withSummary(baseLocation({ id: 'c' }), [
+      need({ id: 'n', locationId: 'c', urgencia: 'baja', status: 'pendiente' }),
+    ]);
+    expect(resolveAyudaPinTone(loc)).toBe('brand');
+  });
+
+  it('returns brand when all needs are cubierto (floor — soloConPedidos prevents this in ayuda mode)', () => {
+    const loc = withSummary(baseLocation({ id: 'd' }), [
+      need({ id: 'n', locationId: 'd', urgencia: 'alta', status: 'cubierto' }),
+    ]);
+    expect(resolveAyudaPinTone(loc)).toBe('brand');
+  });
+
+  it('returns brand when zone has no needs (floor)', () => {
+    const loc = withSummary(baseLocation({ id: 'e' }), []);
+    expect(resolveAyudaPinTone(loc)).toBe('brand');
+  });
+
+  it('prefers alta over media when both are open', () => {
+    const loc = withSummary(baseLocation({ id: 'f' }), [
+      need({ id: 'n1', locationId: 'f', urgencia: 'alta', status: 'pendiente' }),
+      need({ id: 'n2', locationId: 'f', urgencia: 'media', status: 'pendiente' }),
+    ]);
+    expect(resolveAyudaPinTone(loc)).toBe('danger');
+  });
+
+  it('ignores cubierto alta needs — uses media if that is the open urgency', () => {
+    const loc = withSummary(baseLocation({ id: 'g' }), [
+      need({ id: 'n1', locationId: 'g', urgencia: 'alta', status: 'cubierto' }),
+      need({ id: 'n2', locationId: 'g', urgencia: 'media', status: 'pendiente' }),
+    ]);
+    expect(resolveAyudaPinTone(loc)).toBe('warning');
   });
 });

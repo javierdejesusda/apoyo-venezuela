@@ -29,6 +29,8 @@ interface ZonasResponse {
   nextCursor: number | null;
 }
 
+// Zones default to having one open need so they pass the ayuda soloConPedidos
+// filter that seeded state applies on mount.
 function loc(id: string, over: Partial<LocationWithNeeds> = {}): LocationWithNeeds {
   return {
     id,
@@ -42,7 +44,7 @@ function loc(id: string, over: Partial<LocationWithNeeds> = {}): LocationWithNee
     createdAt: '2026-06-24T22:10:00Z',
     updatedAt: '2026-06-24T22:10:00Z',
     needs: [],
-    summary: { total: 0, pendientes: 0, enCamino: 0, cubiertos: 0, urgentes: 0 },
+    summary: { total: 1, pendientes: 1, enCamino: 0, cubiertos: 0, urgentes: 0 },
     ...over,
   };
 }
@@ -95,12 +97,17 @@ describe('HomeExplorer pagination', () => {
   });
 
   it('shows "Ver mas" button with remaining count when total exceeds page size', async () => {
-    const locs = makeLocations(PAGE_SIZE);
+    // Pass the full set as initialMapLocations so the seeded state
+    // reflects the complete count, making remaining > 0 on first paint.
+    const allLocs = makeLocations(PAGE_SIZE + 10);
     render(
-      <HomeExplorer initialLocations={locs} initialTotal={PAGE_SIZE + 10} states={['Carabobo']} />,
+      <HomeExplorer
+        initialLocations={allLocs.slice(0, PAGE_SIZE)}
+        initialMapLocations={allLocs}
+        initialTotal={PAGE_SIZE + 10}
+        states={['Carabobo']}
+      />,
     );
-    // Flush the mount all=true fetch (fails silently since fetchMock has no impl,
-    // but clears the loading flag so the list can paint the button text correctly).
     await act(async () => {});
     // Map is the default view; switch to list to see pagination controls.
     fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
@@ -111,11 +118,15 @@ describe('HomeExplorer pagination', () => {
   });
 
   it('button label uses the accented "mas" with tilde', async () => {
-    const locs = makeLocations(PAGE_SIZE);
+    const allLocs = makeLocations(PAGE_SIZE + 5);
     render(
-      <HomeExplorer initialLocations={locs} initialTotal={PAGE_SIZE + 5} states={['Carabobo']} />,
+      <HomeExplorer
+        initialLocations={allLocs.slice(0, PAGE_SIZE)}
+        initialMapLocations={allLocs}
+        initialTotal={PAGE_SIZE + 5}
+        states={['Carabobo']}
+      />,
     );
-    // Flush the mount all=true fetch before switching views.
     await act(async () => {});
     // Map is the default view; switch to list to see the button.
     fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
@@ -125,7 +136,7 @@ describe('HomeExplorer pagination', () => {
   });
 
   it('clicking "Ver mas" fetches the next page and appends items', async () => {
-    const initial = makeLocations(PAGE_SIZE);
+    const allLocs = makeLocations(PAGE_SIZE + 5);
     const nextPage = makeLocations(5).map((l) => ({ ...l, id: `next-${l.id}` }));
 
     fetchMock.mockResolvedValue({
@@ -135,13 +146,13 @@ describe('HomeExplorer pagination', () => {
 
     render(
       <HomeExplorer
-        initialLocations={initial}
+        initialLocations={allLocs.slice(0, PAGE_SIZE)}
+        initialMapLocations={allLocs}
         initialTotal={PAGE_SIZE + 5}
         states={['Carabobo']}
       />,
     );
 
-    // Flush the mount all=true fetch (updates mapLocations, clears loading).
     await act(async () => {});
     // Map is the default view; switch to list to interact with pagination.
     fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
@@ -189,7 +200,7 @@ describe('HomeExplorer pagination', () => {
       />,
     );
 
-    // Flush the mount all=true fetch so the view is stable before switching.
+    // Flush any pending effects so the view is stable before switching.
     await act(async () => {});
     // Switch to list view so the filter change dispatches cursor=0 (not all=true).
     fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
@@ -278,9 +289,11 @@ describe('HomeExplorer map view', () => {
       }),
     });
 
+    const allLocs = makeLocations(PAGE_SIZE + 5);
     render(
       <HomeExplorer
-        initialLocations={makeLocations(PAGE_SIZE)}
+        initialLocations={allLocs.slice(0, PAGE_SIZE)}
+        initialMapLocations={allLocs}
         initialTotal={PAGE_SIZE + 5}
         states={['Carabobo']}
       />,
@@ -318,15 +331,17 @@ describe('HomeExplorer fetch error handling', () => {
   it('ok=false response leaves prior data intact and clears loading', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
 
+    const allLocs = makeLocations(PAGE_SIZE + 5);
     render(
       <HomeExplorer
-        initialLocations={makeLocations(PAGE_SIZE)}
+        initialLocations={allLocs.slice(0, PAGE_SIZE)}
+        initialMapLocations={allLocs}
         initialTotal={PAGE_SIZE + 5}
         states={['Carabobo', 'Aragua']}
       />,
     );
 
-    // Flush the mount all=true fetch (ok=false -> clears loading, data preserved).
+    // Flush any pending effects.
     await act(async () => {});
     // Switch to list view to see the "Ver mas" button.
     fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
@@ -344,15 +359,17 @@ describe('HomeExplorer fetch error handling', () => {
   it('rejected fetch leaves prior data intact and does not throw', async () => {
     fetchMock.mockRejectedValue(new Error('network error'));
 
+    const allLocs = makeLocations(PAGE_SIZE + 5);
     render(
       <HomeExplorer
-        initialLocations={makeLocations(PAGE_SIZE)}
+        initialLocations={allLocs.slice(0, PAGE_SIZE)}
+        initialMapLocations={allLocs}
         initialTotal={PAGE_SIZE + 5}
         states={['Carabobo', 'Aragua']}
       />,
     );
 
-    // Flush the mount all=true fetch (rejects -> clears loading, data preserved).
+    // Flush any pending effects.
     await act(async () => {});
     // Switch to list view to see the "Ver mas" button.
     fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));

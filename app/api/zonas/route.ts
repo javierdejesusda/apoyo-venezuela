@@ -36,6 +36,7 @@ export async function GET(request: Request): Promise<Response> {
     filters.urgencia = rawUrgencia as LocationFilters['urgencia'];
   }
   if (texto) filters.texto = texto;
+  if (searchParams.get('soloConPedidos') === 'true') filters.soloConPedidos = true;
 
   // all=true: map surface needs every matching zone; Infinity tells the store
   // to skip slicing. Paginated mode uses the cursor offset and PAGE_SIZE limit.

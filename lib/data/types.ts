@@ -191,6 +191,9 @@ export interface CreateNeedInput {
   urgencia: Urgency;
 }
 
+/** Which half of the explorer the user is browsing. */
+export type ExplorerMode = 'ayuda' | 'danos';
+
 /** Filters applied to the zone list/map on the home screen. */
 export interface LocationFilters {
   estado?: string;
@@ -200,6 +203,8 @@ export interface LocationFilters {
   categoria?: NeedCategory;
   urgencia?: Urgency;
   texto?: string;
+  /** Ayuda mode: exclude zones with no open (pendiente or en_camino) needs. */
+  soloConPedidos?: boolean;
 }
 
 /** Default number of locations per page for the bounded home list. */
