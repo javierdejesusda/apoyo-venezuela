@@ -250,6 +250,21 @@
   animation: live-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+/* Seismic ticker: loops the latest quake. The track holds two identical copies,
+ * so translating by -50% returns seamlessly to the start. Pauses on hover. The
+ * reduced-motion block below halts it; the component also renders a static copy. */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 .tabular {
   font-variant-numeric: tabular-nums;
 }

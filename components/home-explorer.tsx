@@ -11,6 +11,7 @@ import { ViewToggle, type HomeView } from '@/components/view-toggle';
 import { applyFilters, sortLocations } from '@/lib/data/selectors';
 import { PAGE_SIZE } from '@/lib/data/store';
 import type { LocationFilters, LocationWithNeeds } from '@/lib/data/types';
+import type { Sismo } from '@/lib/sismos/types';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -69,6 +70,7 @@ export function HomeExplorer({
   initialTotal,
   states,
   ciudadesByEstado = {},
+  sismos = [],
 }: {
   initialLocations: LocationWithNeeds[];
   /**
@@ -80,6 +82,8 @@ export function HomeExplorer({
   initialTotal: number;
   states: string[];
   ciudadesByEstado?: Record<string, string[]>;
+  /** Recent earthquakes to plot as epicenters on the map surface. */
+  sismos?: Sismo[];
 }) {
   const mapInitial = initialMapLocations ?? initialLocations;
 
@@ -213,6 +217,7 @@ export function HomeExplorer({
               ) : (
                 <MapView
                   locations={mapLocations}
+                  sismos={sismos}
                   selectedId={selectedId}
                   onSelect={setSelectedId}
                   className="h-full w-full"

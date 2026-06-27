@@ -1,10 +1,12 @@
 import { HomeExplorer } from '@/components/home-explorer';
 import { HomeHero } from '@/components/home-hero';
 import { MissingPersonsLink } from '@/components/missing-persons-link';
+import { SeismicTicker } from '@/components/seismic-ticker';
 import { SharePanel } from '@/components/share-panel';
 import { loadHomeData } from '@/lib/data/home';
 import { stripContactPii } from '@/lib/data/selectors';
 import { getStore, PAGE_SIZE } from '@/lib/data/store';
+import { loadSismos } from '@/lib/sismos/load';
 
 // ISR with 30-second revalidation. In-app writes call revalidatePath('/')
 // via app/actions.ts for instant on-demand revalidation. Out-of-band changes
@@ -13,9 +15,8 @@ import { getStore, PAGE_SIZE } from '@/lib/data/store';
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const { locations, stats, states, ciudadesByEstado, loadFailed } = await loadHomeData(
-    getStore(),
-  );
+  const [{ locations, stats, states, ciudadesByEstado, loadFailed }, sismos] =
+    await Promise.all([loadHomeData(getStore()), loadSismos()]);
 
   // Embed the full server-loaded set for the map (no per-visitor fetch) and a
   // bounded first page for the list, both with reporter contact PII stripped
@@ -26,6 +27,8 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
+      <SeismicTicker sismos={sismos} />
+
       <HomeHero stats={stats} />
 
       <MissingPersonsLink variant="card" />
@@ -48,6 +51,7 @@ export default async function HomePage() {
         initialTotal={initialTotal}
         states={states}
         ciudadesByEstado={ciudadesByEstado}
+        sismos={sismos}
       />
     </div>
   );

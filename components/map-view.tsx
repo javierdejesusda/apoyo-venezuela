@@ -4,25 +4,58 @@ import 'leaflet/dist/leaflet.css';
 
 import L from 'leaflet';
 import { Image as ImageIcon, LocateFixed } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Circle,
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet';
 
 import { PersonasAtrapadasBadge } from '@/components/status-badges';
 import { useTheme } from '@/components/theme-provider';
+import { transformedFotoUrl } from '@/lib/data/foto-url';
 import { resolveMapCoords } from '@/lib/data/geo';
 import type { LocationWithNeeds } from '@/lib/data/types';
 import { EMERGENCY_STATUSES } from '@/lib/data/types';
+import {
+  computePreviewPlacement,
+  excerpt,
+  type PlacementResult,
+} from '@/lib/map/preview';
+import { formatPlaceEs, relativeTimeEs } from '@/lib/sismos/format';
+import { magnitudeStyle } from '@/lib/sismos/magnitude';
+import type { Sismo } from '@/lib/sismos/types';
 import { resolveStatusMeta, statusMeta, TONE_HEX } from '@/lib/status';
-import { usePrefersReducedMotion } from '@/lib/use-prefers-dark';
+import { useNow } from '@/lib/use-now';
+import { useMediaQuery, usePrefersReducedMotion } from '@/lib/use-prefers-dark';
 
 // Cap on how many derrumbe pins may pulse so battery / GPU stays bounded.
 const MAX_PULSING = 5;
 
 export interface MapViewProps {
   locations: LocationWithNeeds[];
+  /** Recent earthquakes to plot as epicenters, newest first. */
+  sismos?: Sismo[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   className?: string;
+}
+
+/** Hover-preview state: the location under the cursor and the pin's pixel point. */
+interface HoverState {
+  loc: LocationWithNeeds;
+  point: { x: number; y: number };
 }
 
 // Venezuela north-central default view when there are no points to fit.
@@ -56,6 +89,38 @@ function buildPinIcon(hex: string, selected: boolean, pulse: boolean): L.DivIcon
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -(size / 2 + 4)],
+  });
+}
+
+/**
+ * Builds an epicenter marker: a hollow ring with a faint fill and a center dot,
+ * deliberately distinct from the solid damage pins. Strong quakes radiate the
+ * shared `seismic-ring` pulse.
+ */
+function buildEpicenterIcon(color: string, radiusPx: number, pulse: boolean): L.DivIcon {
+  const size = radiusPx * 2;
+  const pulseEl = pulse
+    ? `<span class="seismic-ring" style="position:absolute;inset:-3px;border-radius:50%;border:1.5px solid ${color};"></span>`
+    : '';
+  const html = `<div style="position:relative;width:${size}px;height:${size}px;">
+    ${pulseEl}
+    <div style="
+      position:absolute;inset:0;border-radius:50%;
+      border:2px solid ${color};background:${color}22;
+      box-shadow:0 0 0 1px rgba(255,255,255,0.5);
+      box-sizing:border-box;
+    "></div>
+    <span style="
+      position:absolute;top:50%;left:50%;width:3px;height:3px;
+      transform:translate(-50%,-50%);border-radius:50%;background:${color};
+    "></span>
+  </div>`;
+  return L.divIcon({
+    html,
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2 + 2)],
   });
 }
 
@@ -224,8 +289,112 @@ function Legend(): React.JSX.Element {
   );
 }
 
+/** Clears the hover preview whenever the map starts panning or zooming. */
+function ClearHoverOnMove({ onClear }: { onClear: () => void }): null {
+  useMapEvents({ movestart: onClear, zoomstart: onClear });
+  return null;
+}
+
+/**
+ * Floating preview shown while hovering a damage pin (pointer devices only).
+ * It measures itself, then positions above the pin, flipping below and clamping
+ * to the map edges so it never spills out. Decorative: the accessible detail
+ * lives in the click/tap Popup, so the card is aria-hidden and click-through.
+ */
+function HoverPreviewCard({
+  loc,
+  point,
+  reducedMotion,
+}: {
+  loc: LocationWithNeeds;
+  point: { x: number; y: number };
+  reducedMotion: boolean;
+}): React.JSX.Element {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<PlacementResult | null>(null);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    // offsetParent is the relative map wrapper; measure it for viewport clamping.
+    const parent = el.offsetParent as HTMLElement | null;
+    const viewport = parent
+      ? { width: parent.clientWidth, height: parent.clientHeight }
+      : { width: rect.width, height: rect.height };
+    setPos(
+      computePreviewPlacement({
+        anchor: point,
+        card: { width: rect.width, height: rect.height },
+        viewport,
+        gap: 14,
+      }),
+    );
+  }, [point]);
+
+  const meta = resolveStatusMeta(loc.status);
+  const hex = TONE_HEX[meta.tone];
+  const foto = loc.fotos?.[0];
+  const description = excerpt(loc.descripcion, 96);
+  const { total, urgentes } = loc.summary;
+
+  return (
+    <div
+      ref={cardRef}
+      aria-hidden="true"
+      className="pointer-events-none absolute z-[1100] w-60 overflow-hidden rounded-xl border border-border bg-surface shadow-pop"
+      style={{
+        left: pos?.left ?? -9999,
+        top: pos?.top ?? -9999,
+        opacity: pos ? 1 : 0,
+        transition: reducedMotion ? undefined : 'opacity 120ms ease-out',
+      }}
+    >
+      {foto && !imgFailed && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={transformedFotoUrl(foto, { width: 360, height: 180, resize: 'cover' })}
+          alt=""
+          loading="lazy"
+          onError={() => setImgFailed(true)}
+          className="img-outline h-24 w-full object-cover"
+        />
+      )}
+      <div className="p-3">
+        <p className="font-semibold leading-tight text-ink">{loc.nombre}</p>
+        <p className="mb-1.5 text-xs text-ink-faint">
+          {loc.ciudad}, {loc.estado}
+          {loc.zona ? ` - ${loc.zona}` : ''}
+        </p>
+        <div className="mb-1.5 flex items-center gap-1.5">
+          <span
+            aria-hidden="true"
+            style={{ backgroundColor: hex }}
+            className="inline-block h-2 w-2 shrink-0 rounded-full"
+          />
+          <span className="text-xs text-ink-soft">{meta.label}</span>
+        </div>
+        <p className="text-xs text-ink-soft">
+          <span className="tabular">{total}</span> {total === 1 ? 'necesidad' : 'necesidades'}
+          {urgentes > 0 && (
+            <span className="text-danger">
+              {' '}
+              · <span className="tabular">{urgentes}</span> urgente{urgentes !== 1 ? 's' : ''}
+            </span>
+          )}
+        </p>
+        {description && (
+          <p className="mt-1.5 text-xs leading-snug text-ink-soft">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function MapView({
   locations,
+  sismos = [],
   selectedId,
   onSelect,
   className,
@@ -235,6 +404,11 @@ export default function MapView({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const reducedMotion = usePrefersReducedMotion();
+  // Hover preview is a pointer-only enhancement; touch keeps the tap Popup.
+  const canHover = useMediaQuery('(hover: hover) and (pointer: fine)');
+  const [hovered, setHovered] = useState<HoverState | null>(null);
+  const clearHover = useCallback(() => setHovered(null), []);
+  const now = useNow();
   // Muted CARTO basemap reads as an instrument and lets the semaphore pins pop.
   const tileUrl = isDark
     ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
@@ -270,6 +444,18 @@ export default function MapView({
     return cache;
   }, [valid, selectedId, pulsingIds]);
 
+  // Epicenter icons sized/colored by magnitude; the newest and strong quakes
+  // pulse. Memoized so DivIcons are not rebuilt on every render.
+  const epicenterIcons = useMemo(() => {
+    const cache = new Map<string, L.DivIcon>();
+    sismos.forEach((s, i) => {
+      const style = magnitudeStyle(s.magnitude);
+      const pulse = !reducedMotion && (style.pulse || i === 0);
+      cache.set(s.id, buildEpicenterIcon(style.color, style.radiusPx, pulse));
+    });
+    return cache;
+  }, [sismos, reducedMotion]);
+
   return (
     <div
       className={[
@@ -298,6 +484,8 @@ export default function MapView({
         <GeolocationButton />
 
         <Legend />
+
+        {canHover && <ClearHoverOnMove onClear={clearHover} />}
 
         {valid.map(({ loc, lat, lng, approximate, accuracyM }) => {
           if (!approximate || accuracyM <= 0) return null;
@@ -331,6 +519,19 @@ export default function MapView({
               key={loc.id}
               position={[lat, lng]}
               icon={icon}
+              eventHandlers={
+                canHover
+                  ? {
+                      mouseover: (e) =>
+                        setHovered({
+                          loc,
+                          point: { x: e.containerPoint.x, y: e.containerPoint.y },
+                        }),
+                      mouseout: clearHover,
+                      click: clearHover,
+                    }
+                  : undefined
+              }
               ref={(m) => {
                 if (m) {
                   markerRefs.current.set(loc.id, m);
@@ -402,7 +603,42 @@ export default function MapView({
             </Marker>
           );
         })}
+
+        {sismos.map((s) => {
+          const icon = epicenterIcons.get(s.id);
+          if (!icon) return null;
+          return (
+            <Marker
+              key={`sismo-${s.id}`}
+              position={[s.lat, s.lng]}
+              icon={icon}
+              zIndexOffset={-500}
+            >
+              <Popup>
+                <div className="min-w-[160px] max-w-[220px] text-sm text-ink">
+                  <p className="mb-0.5 font-semibold leading-tight text-ink">
+                    Sismo · <span className="tabular">M{s.magnitude.toFixed(1)}</span>
+                  </p>
+                  <p className="mb-1 text-xs text-ink-soft">{formatPlaceEs(s.place)}</p>
+                  <p className="text-xs text-ink-faint">
+                    {now !== null && <>{relativeTimeEs(s.time, now)} · </>}
+                    <span className="tabular">{Math.round(s.depthKm)}</span> km prof.
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
+
+      {canHover && hovered && (
+        <HoverPreviewCard
+          key={hovered.loc.id}
+          loc={hovered.loc}
+          point={hovered.point}
+          reducedMotion={reducedMotion}
+        />
+      )}
     </div>
   );
 }
