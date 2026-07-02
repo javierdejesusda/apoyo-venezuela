@@ -17,7 +17,7 @@
     "rollback-ayudapara": "node scripts/rollback-ayudapara.mjs"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.2",
+    "@ai-sdk/openai": "^4.0.7",
     "@ai-sdk/react": "^4.0.5",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@scalar/api-reference-react": "^0.9.49",
