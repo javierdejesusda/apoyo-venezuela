@@ -2,37 +2,58 @@
  * MCP server exposing the same read-only public data as the REST API v1
  * (`/app/api/v1/**`). Tools call the same store queries and DTO builders the
  * REST routes use, so the two surfaces can never drift apart. Streamable HTTP
- * only (no SSE, per the current MCP spec) at a single fixed path.
+ * only (no separate legacy SSE/message endpoints) at a single fixed path.
  *
  * Each tool's handler is exported as a plain async function (not inlined into
  * `registerTool`) so it can be unit-tested directly, the same way the REST
  * route handlers in `app/api/v1/**` are tested without going through the HTTP
  * transport.
+ *
+ * `GET` is handled directly in this file rather than delegated to
+ * `mcp-handler`: per the Streamable HTTP transport spec, a client MAY probe
+ * the MCP endpoint with GET to open a listening SSE stream before ever
+ * sending POST, and a plain 405 is a legal response to that probe. In
+ * practice, though, Claude.ai's and ChatGPT's remote-connector clients treat
+ * that 405 as "unreachable" and refuse to connect at all, and `mcp-handler`
+ * (as of 1.1.0) always answers GET on the streamable endpoint with 405 with
+ * no way to configure otherwise. Since none of the tools below need
+ * server-initiated pushes, this just opens an idle heartbeat stream to
+ * satisfy that probe; all real request/response traffic still goes over
+ * POST via `handler`.
  */
 import { createMcpHandler } from 'mcp-handler';
 import { z } from 'zod';
 
 import { clampPagination, parseUuid } from '@/lib/api/params';
 import { listPublicPedidos } from '@/lib/api/pedidos';
-import { buildPublicStats, toPublicCampana, toPublicZona } from '@/lib/api/public-shape';
-import { getStore } from '@/lib/data/store';
 import {
-  EMERGENCY_STATUSES,
-  NEED_CATEGORIES,
-  NEED_STATUSES,
-  URGENCIES,
-} from '@/lib/data/types';
+  buildPublicStats,
+  campanaSchema,
+  paginationSchema,
+  pedidoConZonaSchema,
+  statsSchema,
+  toPublicCampana,
+  toPublicZona,
+  zonaSchema,
+} from '@/lib/api/public-shape';
+import { getStore } from '@/lib/data/store';
+import { EMERGENCY_STATUSES, NEED_CATEGORIES, NEED_STATUSES, URGENCIES } from '@/lib/data/types';
 import type { LocationFilters } from '@/lib/data/types';
 
 interface ToolResult {
   [key: string]: unknown;
   content: Array<{ type: 'text'; text: string }>;
+  structuredContent?: Record<string, unknown>;
   isError?: boolean;
 }
 
-/** A single `{ type: 'text' }` tool result carrying a JSON-encoded payload. */
-function jsonResult(payload: unknown): ToolResult {
-  return { content: [{ type: 'text', text: JSON.stringify(payload) }] };
+/**
+ * A single `{ type: 'text' }` tool result carrying a JSON-encoded payload,
+ * mirrored in `structuredContent` for the tools that declare an `outputSchema`
+ * (required by the SDK whenever one is present, validated against it).
+ */
+function jsonResult(payload: Record<string, unknown>): ToolResult {
+  return { content: [{ type: 'text', text: JSON.stringify(payload) }], structuredContent: payload };
 }
 
 /** Same non-leaking contract as `withApiError`: never surface the raw error. */
@@ -126,6 +147,14 @@ export const getEstadisticasTool = withToolError(async () => {
   return jsonResult({ data: buildPublicStats(locations) });
 });
 
+/** All tools here are read-only, closed-world queries against our own store: no writes, no side effects, no open-world/web access. */
+const readOnlyAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+};
+
 const handler = createMcpHandler(
   (server) => {
     server.registerTool(
@@ -145,6 +174,11 @@ const handler = createMcpHandler(
           soloConPedidos: z.boolean().optional().describe('Si es true, excluye zonas sin pedidos abiertos.'),
           ...paginationShape,
         },
+        outputSchema: {
+          data: z.array(zonaSchema),
+          pagination: paginationSchema,
+        },
+        annotations: readOnlyAnnotations,
       },
       listZonasTool,
     );
@@ -159,6 +193,10 @@ const handler = createMcpHandler(
         inputSchema: {
           id: z.string().describe('UUID de la zona.'),
         },
+        outputSchema: {
+          data: zonaSchema,
+        },
+        annotations: readOnlyAnnotations,
       },
       getZonaTool,
     );
@@ -177,6 +215,11 @@ const handler = createMcpHandler(
           status: z.enum(NEED_STATUSES).optional(),
           ...paginationShape,
         },
+        outputSchema: {
+          data: z.array(pedidoConZonaSchema),
+          pagination: paginationSchema,
+        },
+        annotations: readOnlyAnnotations,
       },
       listPedidosTool,
     );
@@ -189,6 +232,11 @@ const handler = createMcpHandler(
           'Lista las campanas de recaudacion de fondos (GoFundMe) registradas. Equivalente a ' +
           'GET /api/v1/campanas.',
         inputSchema: {},
+        outputSchema: {
+          data: z.array(campanaSchema),
+          pagination: paginationSchema,
+        },
+        annotations: readOnlyAnnotations,
       },
       listCampanasTool,
     );
@@ -201,6 +249,10 @@ const handler = createMcpHandler(
           'Devuelve conteos agregados de zonas y pedidos (por estado estructural, categoria y ' +
           'urgencia). Equivalente a GET /api/v1/estadisticas.',
         inputSchema: {},
+        outputSchema: {
+          data: statsSchema,
+        },
+        annotations: readOnlyAnnotations,
       },
       getEstadisticasTool,
     );
@@ -209,4 +261,47 @@ const handler = createMcpHandler(
   { basePath: '/api', disableSse: true },
 );
 
-export { handler as GET, handler as POST };
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
+const SSE_HEARTBEAT_MS = 20_000;
+
+/** Idle SSE stream so GET-probing connectors see a live server, not a 405. */
+export function GET(request: Request): Response {
+  const encoder = new TextEncoder();
+  let heartbeat: ReturnType<typeof setInterval>;
+
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoder.encode(': connected\n\n'));
+      heartbeat = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(': ping\n\n'));
+        } catch {
+          clearInterval(heartbeat);
+        }
+      }, SSE_HEARTBEAT_MS);
+      request.signal.addEventListener('abort', () => {
+        clearInterval(heartbeat);
+        try {
+          controller.close();
+        } catch {
+          // Stream already closed.
+        }
+      });
+    },
+    cancel() {
+      clearInterval(heartbeat);
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+    },
+  });
+}
+
+export { handler as POST };

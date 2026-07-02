@@ -6,10 +6,23 @@
  * field from an explicit allowlist, so any internal column (source_ref, cluster
  * ids, throttle hashes, exact accuracy) can never leak into a public response,
  * even if it is later added to the domain model.
+ *
+ * Each `PublicX` interface has a matching `xSchema` Zod mirror declared right
+ * beneath it, consumed by the MCP route (`app/api/mcp/route.ts`) as tool
+ * `outputSchema`s. They're kept side by side so a field never gets added to
+ * one and forgotten in the other. `lib/api/openapi.ts` still hand-authors its
+ * own JSON Schema for the REST docs; that's the last copy of this shape left,
+ * and could be replaced with `z.toJSONSchema(xSchema)` (native since Zod v4)
+ * to collapse it down to one definition too.
  */
+import { z } from 'zod';
+
 import {
   EMERGENCY_STATUSES,
+  FUENTE_REPORTE,
   NEED_CATEGORIES,
+  NEED_STATUSES,
+  PERSONAS_ATRAPADAS,
   PERSONAS_ATRAPADAS_DEFAULT,
   URGENCIES,
 } from '@/lib/data/types';
@@ -38,10 +51,21 @@ export interface PublicUbicacion {
   precisionAprox: string;
 }
 
+export const ubicacionSchema = z.object({
+  lat: z.number(),
+  lng: z.number(),
+  precisionAprox: z.string(),
+});
+
 export interface PublicContacto {
   nombre?: string;
   telefono?: string;
 }
+
+export const contactoSchema = z.object({
+  nombre: z.string().optional(),
+  telefono: z.string().optional(),
+});
 
 export interface PublicResumen {
   totalPedidos: number;
@@ -50,6 +74,14 @@ export interface PublicResumen {
   cubiertos: number;
   urgentes: number;
 }
+
+export const resumenSchema = z.object({
+  totalPedidos: z.number().int(),
+  pendientes: z.number().int(),
+  enCamino: z.number().int(),
+  cubiertos: z.number().int(),
+  urgentes: z.number().int(),
+});
 
 export interface PublicPedido {
   id: string;
@@ -62,12 +94,30 @@ export interface PublicPedido {
   actualizadoEn: string;
 }
 
+export const pedidoSchema = z.object({
+  id: z.string(),
+  categoria: z.enum(NEED_CATEGORIES),
+  descripcion: z.string(),
+  cantidad: z.string().optional(),
+  urgencia: z.enum(URGENCIES),
+  status: z.enum(NEED_STATUSES),
+  creadoEn: z.string(),
+  actualizadoEn: z.string(),
+});
+
 export interface PublicPedidoConZona extends PublicPedido {
   zonaId: string;
   zonaNombre: string;
   ciudad: string;
   estado: string;
 }
+
+export const pedidoConZonaSchema = pedidoSchema.extend({
+  zonaId: z.string(),
+  zonaNombre: z.string(),
+  ciudad: z.string(),
+  estado: z.string(),
+});
 
 export interface PublicZona {
   id: string;
@@ -91,6 +141,28 @@ export interface PublicZona {
   actualizadoEn: string;
 }
 
+export const zonaSchema = z.object({
+  id: z.string(),
+  nombre: z.string(),
+  estado: z.string(),
+  ciudad: z.string(),
+  zona: z.string().optional(),
+  ubicacion: ubicacionSchema.nullable(),
+  status: z.enum(EMERGENCY_STATUSES),
+  personasAtrapadas: z.enum(PERSONAS_ATRAPADAS),
+  aceptaVoluntarios: z.boolean(),
+  fuenteReporte: z.enum(FUENTE_REPORTE).nullable(),
+  tipoConstruccion: z.string().nullable(),
+  descripcion: z.string().optional(),
+  /** Present only on the detail endpoint; omitted entirely on bulk surfaces. */
+  contacto: contactoSchema.nullable().optional(),
+  fotos: z.array(z.string()),
+  resumen: resumenSchema,
+  pedidos: z.array(pedidoSchema),
+  creadoEn: z.string(),
+  actualizadoEn: z.string(),
+});
+
 export interface PublicCampana {
   id: string;
   titulo: string;
@@ -101,6 +173,16 @@ export interface PublicCampana {
   actualizadoEn: string;
 }
 
+export const campanaSchema = z.object({
+  id: z.string(),
+  titulo: z.string(),
+  descripcion: z.string(),
+  url: z.string(),
+  organizador: z.string().optional(),
+  creadoEn: z.string(),
+  actualizadoEn: z.string(),
+});
+
 export interface PublicStats {
   zonas: number;
   zonasPorStatus: Record<EmergencyStatus, number>;
@@ -109,6 +191,25 @@ export interface PublicStats {
   pedidosPorCategoria: Record<NeedCategory, number>;
   pedidosPorUrgencia: Record<Urgency, number>;
 }
+
+export const statsSchema = z.object({
+  zonas: z.number().int(),
+  zonasPorStatus: z.record(z.string(), z.number().int()),
+  pedidosTotales: z.number().int(),
+  pedidosAbiertos: z.number().int(),
+  pedidosPorCategoria: z.record(z.string(), z.number().int()),
+  pedidosPorUrgencia: z.record(z.string(), z.number().int()),
+});
+
+export interface PublicPagination {
+  total: number;
+  nextCursor: number | null;
+}
+
+export const paginationSchema = z.object({
+  total: z.number().int(),
+  nextCursor: z.number().int().nullable(),
+});
 
 /** Rounds a single coordinate to the public precision (3 decimals). */
 export function roundCoord(value: number): number {
