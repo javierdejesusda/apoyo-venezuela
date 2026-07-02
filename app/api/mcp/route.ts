@@ -26,16 +26,18 @@ import { z } from 'zod';
 
 import { clampPagination, parseUuid } from '@/lib/api/params';
 import { listPublicPedidos } from '@/lib/api/pedidos';
-import { buildPublicStats, toPublicCampana, toPublicZona } from '@/lib/api/public-shape';
-import { getStore } from '@/lib/data/store';
 import {
-  EMERGENCY_STATUSES,
-  FUENTE_REPORTE,
-  NEED_CATEGORIES,
-  NEED_STATUSES,
-  PERSONAS_ATRAPADAS,
-  URGENCIES,
-} from '@/lib/data/types';
+  buildPublicStats,
+  campanaSchema,
+  paginationSchema,
+  pedidoConZonaSchema,
+  statsSchema,
+  toPublicCampana,
+  toPublicZona,
+  zonaSchema,
+} from '@/lib/api/public-shape';
+import { getStore } from '@/lib/data/store';
+import { EMERGENCY_STATUSES, NEED_CATEGORIES, NEED_STATUSES, URGENCIES } from '@/lib/data/types';
 import type { LocationFilters } from '@/lib/data/types';
 
 interface ToolResult {
@@ -143,95 +145,6 @@ export const listCampanasTool = withToolError(async () => {
 export const getEstadisticasTool = withToolError(async () => {
   const locations = await getStore().listLocations();
   return jsonResult({ data: buildPublicStats(locations) });
-});
-
-/**
- * Zod mirrors of the `PublicX` DTOs in `lib/api/public-shape.ts`, used as each
- * tool's `outputSchema`. Kept separate from the JSON-Schema OpenAPI contract in
- * `lib/api/openapi.ts` because the MCP SDK requires `outputSchema` to be a Zod
- * raw shape (same convention as `inputSchema`), not a `$ref`-based JSON Schema.
- */
-const ubicacionSchema = z.object({
-  lat: z.number(),
-  lng: z.number(),
-  precisionAprox: z.string(),
-});
-
-const contactoSchema = z.object({
-  nombre: z.string().optional(),
-  telefono: z.string().optional(),
-});
-
-const resumenSchema = z.object({
-  totalPedidos: z.number().int(),
-  pendientes: z.number().int(),
-  enCamino: z.number().int(),
-  cubiertos: z.number().int(),
-  urgentes: z.number().int(),
-});
-
-const pedidoSchema = z.object({
-  id: z.string(),
-  categoria: z.enum(NEED_CATEGORIES),
-  descripcion: z.string(),
-  cantidad: z.string().optional(),
-  urgencia: z.enum(URGENCIES),
-  status: z.enum(NEED_STATUSES),
-  creadoEn: z.string(),
-  actualizadoEn: z.string(),
-});
-
-const pedidoConZonaSchema = pedidoSchema.extend({
-  zonaId: z.string(),
-  zonaNombre: z.string(),
-  ciudad: z.string(),
-  estado: z.string(),
-});
-
-const zonaSchema = z.object({
-  id: z.string(),
-  nombre: z.string(),
-  estado: z.string(),
-  ciudad: z.string(),
-  zona: z.string().optional(),
-  ubicacion: ubicacionSchema.nullable(),
-  status: z.enum(EMERGENCY_STATUSES),
-  personasAtrapadas: z.enum(PERSONAS_ATRAPADAS),
-  aceptaVoluntarios: z.boolean(),
-  fuenteReporte: z.enum(FUENTE_REPORTE).nullable(),
-  tipoConstruccion: z.string().nullable(),
-  descripcion: z.string().optional(),
-  /** Present only on the detail tool (`get_zona`); omitted on bulk lists. */
-  contacto: contactoSchema.nullable().optional(),
-  fotos: z.array(z.string()),
-  resumen: resumenSchema,
-  pedidos: z.array(pedidoSchema),
-  creadoEn: z.string(),
-  actualizadoEn: z.string(),
-});
-
-const campanaSchema = z.object({
-  id: z.string(),
-  titulo: z.string(),
-  descripcion: z.string(),
-  url: z.string(),
-  organizador: z.string().optional(),
-  creadoEn: z.string(),
-  actualizadoEn: z.string(),
-});
-
-const statsSchema = z.object({
-  zonas: z.number().int(),
-  zonasPorStatus: z.record(z.string(), z.number().int()),
-  pedidosTotales: z.number().int(),
-  pedidosAbiertos: z.number().int(),
-  pedidosPorCategoria: z.record(z.string(), z.number().int()),
-  pedidosPorUrgencia: z.record(z.string(), z.number().int()),
-});
-
-const paginationSchema = z.object({
-  total: z.number().int(),
-  nextCursor: z.number().int().nullable(),
 });
 
 /** All tools here are read-only, closed-world queries against our own store: no writes, no side effects, no open-world/web access. */
