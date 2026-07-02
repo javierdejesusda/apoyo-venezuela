@@ -20,7 +20,7 @@
     "@ai-sdk/openai": "^4.0.2",
     "@ai-sdk/react": "^4.0.5",
     "@modelcontextprotocol/sdk": "^1.26.0",
-    "@scalar/api-reference-react": "^0.9.49",
+    "@scalar/api-reference-react": "^0.9.51",
     "@supabase/supabase-js": "^2.108.2",
     "ai": "^7.0.4",
     "clsx": "^2.1.1",
