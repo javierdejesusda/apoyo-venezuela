@@ -10,6 +10,7 @@ import { ServiceWorkerRegister } from '@/components/service-worker-register';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
 import { ThemeProvider } from '@/components/theme-provider';
+import { WebAnalytics } from '@/components/web-analytics';
 import { SITE_URL } from '@/lib/constants';
 import { isDemoMode } from '@/lib/data/store';
 import { themeInitScript } from '@/lib/theme';
@@ -102,6 +103,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <SiteFooter />
           <BottomNav />
           <ServiceWorkerRegister />
+          <WebAnalytics />
         </ThemeProvider>
       </body>
     </html>
