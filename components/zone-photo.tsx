@@ -2,31 +2,17 @@
 
 import { useState } from 'react';
 
-import { transformedFotoUrl } from '@/lib/data/foto-url';
-
 /**
  * A single zone photo from Supabase Storage with a layout-preserving fallback.
- * The src is rewritten to Supabase's image-transformation endpoint so photos are
- * resized and WebP-encoded at the edge (a large egress win) without pulling in
- * the Next image optimizer or a second remote host. On blocked or degraded
- * networks the *.supabase.co request fails; onError swaps in a neutral tile so
- * the photo grid never collapses.
+ * Photos are downscaled and WebP-encoded once at upload/import time and served
+ * raw from the public bucket, so there is no per-request image transformation
+ * (which Supabase bills per unique image) and no second remote host. The grid
+ * renders a square via CSS `object-cover`; the browser scales the single stored
+ * copy. On blocked or degraded networks the *.supabase.co request fails; onError
+ * swaps in a neutral tile so the photo grid never collapses.
  */
-export function ZonePhoto({
-  src,
-  alt,
-  size = 600,
-}: {
-  src: string;
-  alt: string;
-  /** Edge of the cover-cropped square to request, in pixels. List-card previews
-   * pass a smaller value than the zone gallery to keep egress down. */
-  size?: number;
-}) {
+export function ZonePhoto({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false);
-  // The grid renders square thumbnails, so request a small cover-cropped square
-  // instead of a full-height image the browser would only shrink and crop.
-  const optimized = transformedFotoUrl(src, { width: size, height: size, resize: 'cover' });
 
   if (failed) {
     return (
@@ -43,7 +29,7 @@ export function ZonePhoto({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={optimized}
+      src={src}
       alt={alt}
       loading="lazy"
       onError={() => setFailed(true)}

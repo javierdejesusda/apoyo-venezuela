@@ -21,6 +21,7 @@ import { Field, Input, Label, Select, Textarea } from '@/components/ui/form';
 import { MapSkeleton } from '@/components/ui/map-skeleton';
 import { getBrowserSupabase } from '@/lib/data/supabase-browser';
 import { stripImageMetadata } from '@/lib/data/exif-strip';
+import { resizeImageToWebp } from '@/lib/data/foto-resize';
 import { validateFotoFile } from '@/lib/data/foto-validation';
 import {
   EMERGENCY_STATUSES,
@@ -251,6 +252,15 @@ export default function ReportLocationForm(): React.JSX.Element {
     setFotoError(null);
   }
 
+  // Downscale and re-encode to WebP once so the photo is served raw from the
+  // public bucket instead of through Supabase's billed transformation endpoint.
+  // Re-encoding also strips metadata; if it is unavailable, fall back to the
+  // byte-level EXIF strip so a report photo still never publishes GPS data.
+  async function prepareFoto(file: File): Promise<File> {
+    const resized = await resizeImageToWebp(file);
+    return resized ?? stripImageMetadata(file);
+  }
+
   async function uploadFotos(): Promise<string[]> {
     if (fotos.length === 0) return [];
     const client = getBrowserSupabase();
@@ -258,18 +268,17 @@ export default function ReportLocationForm(): React.JSX.Element {
     if (!client) {
       // Demo/local mode: embed images as data URLs so it works without Supabase.
       return Promise.all(
-        fotos.map(async (foto) => readFileAsDataUrl(await stripImageMetadata(foto.file))),
+        fotos.map(async (foto) => readFileAsDataUrl(await prepareFoto(foto.file))),
       );
     }
 
     return Promise.all(
       fotos.map(async (foto) => {
-        // Strip EXIF/GPS metadata before the photo reaches the public bucket.
-        const safe = await stripImageMetadata(foto.file);
+        const safe = await prepareFoto(foto.file);
         const path = `${crypto.randomUUID()}-${sanitizeFilename(safe.name)}`;
         const { error } = await client.storage
           .from('fotos')
-          .upload(path, safe, { upsert: false });
+          .upload(path, safe, { contentType: safe.type, upsert: false });
         if (error) {
           throw new Error('No se pudieron subir las fotos. Intenta de nuevo.');
         }

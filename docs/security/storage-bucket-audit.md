@@ -118,11 +118,16 @@ clearly-beneficial hardening.
    re-encode images after upload via a Storage trigger, an Edge Function, or
    Supabase image transformations. This is the only control that holds when the
    client is bypassed, and it also covers PNG/WebP/HEIC.
-2. **Full-format client stripping via canvas re-encode**: drawing to a `<canvas>`
-   and re-exporting drops all metadata for any format the browser can decode.
-   Deferred because it is riskier and harder to test: Chrome cannot decode HEIC,
-   re-encoding changes quality and file size, and EXIF-orientation handling
-   needs care. Worth doing as a fallback for non-JPEG files once validated.
+2. **Full-format client stripping via canvas re-encode** (implemented): uploads
+   now downscale and re-encode to WebP on a `<canvas>` before upload
+   (`lib/data/foto-resize.ts`), which drops all metadata for any format the
+   browser can decode, not just JPEG. This was added to serve photos raw from
+   the public bucket (avoiding billed Supabase image transformations), and it
+   subsumes the metadata strip for the common case. The byte-level JPEG strip
+   (`lib/data/exif-strip.ts`) remains as the fallback when the browser cannot
+   decode/encode the image, so a report photo still never publishes GPS data.
+   Re-hosted import photos are re-encoded server-side with sharp
+   (`scripts/lib/image-resize.mjs`), which also honors EXIF orientation.
 3. **Rate-limit / gate uploads**: replace direct anon uploads with signed upload
    tokens minted by a Server Action that reuses the existing report throttle, or
    put uploads behind an Edge Function. This bounds abuse and cost.

@@ -16,7 +16,7 @@ export function PhotoCarousel({ fotos }: { fotos: string[] }) {
   if (fotos.length === 0) return null;
 
   if (fotos.length === 1) {
-    return <ZonePhoto src={fotos[0]} alt="Foto del reporte" size={400} />;
+    return <ZonePhoto src={fotos[0]} alt="Foto del reporte" />;
   }
 
   function handlePrev(e: React.MouseEvent) {
@@ -42,7 +42,7 @@ export function PhotoCarousel({ fotos }: { fotos: string[] }) {
 
   return (
     <div className="relative">
-      <ZonePhoto src={fotos[index]} alt="Foto del reporte" size={400} />
+      <ZonePhoto src={fotos[index]} alt="Foto del reporte" />
 
       <div className="absolute inset-x-0 bottom-1.5 flex items-center justify-between px-1.5">
         <button type="button" aria-label="Foto anterior" onClick={handlePrev} className={controlClass}>

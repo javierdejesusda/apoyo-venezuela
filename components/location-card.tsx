@@ -48,7 +48,7 @@ export function LocationCard({
             // Single cover: decorative link so clicking the photo navigates; aria-hidden +
             // tabIndex=-1 keeps it out of the a11y tree (the details Link carries the name).
             <Link href={`/zona/${location.id}`} aria-hidden tabIndex={-1}>
-              <ZonePhoto src={cover} alt="" size={400} />
+              <ZonePhoto src={cover} alt="" />
             </Link>
           )}
           <span className="sr-only">

@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 
 import { ZonePhoto } from '@/components/zone-photo';
-import { transformedFotoUrl } from '@/lib/data/foto-url';
 
 /**
  * Square-thumbnail photo grid that opens the full, uncropped photo in an
@@ -94,7 +93,7 @@ export function ZonePhotoGallery({
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={transformedFotoUrl(fotos[activeIndex], { width: 1600, quality: 80 })}
+              src={fotos[activeIndex]}
               alt={`Foto ampliada de la zona ${zoneName}`}
               onClick={(event) => event.stopPropagation()}
               onError={() => setFullFailed(true)}

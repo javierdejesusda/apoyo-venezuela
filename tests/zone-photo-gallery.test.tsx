@@ -28,8 +28,8 @@ describe('ZonePhotoGallery', () => {
 
     expect(screen.getByRole('dialog')).toBeTruthy();
     const full = screen.getByRole('img', { name: /ampliada/i });
-    expect(full.getAttribute('src')).toContain('/render/image/public/fotos/b.jpg');
-    expect(full.getAttribute('src')).toContain('width=1600');
+    expect(full.getAttribute('src')).toBe(FOTOS[1]);
+    expect(full.getAttribute('src')).not.toContain('/render/image/');
     expect(full.className).toContain('object-contain');
   });
 

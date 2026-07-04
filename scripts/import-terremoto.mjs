@@ -18,6 +18,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { requireEnv, requireServiceKey } from './lib/env.mjs';
 
+import { rehostPhoto } from './lib/rehost-photo.mjs';
 import { isMissingPersonReport, toProxyUrl, transformBuilding } from './terremoto-transform.mjs';
 
 const SOURCE_REST = process.env.TERREMOTO_REST ?? 'https://jckifxsdlnsvbztxydes.supabase.co/rest/v1';
@@ -71,36 +72,6 @@ async function fetchSourceSlice(offset, limit) {
   return rows;
 }
 
-const EXT_BY_TYPE = {
-  'image/jpeg': 'jpg',
-  'image/jpg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-  'image/avif': 'avif',
-};
-
-function inferExt(url, contentType) {
-  if (contentType && EXT_BY_TYPE[contentType.toLowerCase()]) return EXT_BY_TYPE[contentType.toLowerCase()];
-  const m = String(url).match(/\.(jpe?g|png|webp|gif|avif)(?:\?|$)/i);
-  return m ? m[1].toLowerCase().replace('jpeg', 'jpg') : 'jpg';
-}
-
-/** Download one source image and upload it to our public bucket; return URL. */
-async function rehostPhoto(supabase, sourceId, index, srcUrl) {
-  const res = await fetch(toProxyUrl(srcUrl), { headers: { 'User-Agent': UA } });
-  if (!res.ok) throw new Error(`photo ${res.status}`);
-  const contentType = res.headers.get('content-type') || 'image/jpeg';
-  if (!/^image\//i.test(contentType)) throw new Error(`non-image content-type ${contentType}`);
-  const buffer = Buffer.from(await res.arrayBuffer());
-  const path = `terremoto/${sourceId}-${index}.${inferExt(srcUrl, contentType)}`;
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, buffer, { contentType, upsert: true });
-  if (error) throw error;
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-}
-
 async function processReport(supabase, row, { dryRun }) {
   if (isMissingPersonReport(row)) return { status: 'filtered', name: row?.name };
 
@@ -119,7 +90,14 @@ async function processReport(supabase, row, { dryRun }) {
   const fotos = [];
   for (let i = 0; i < sourceFotoUrls.length; i += 1) {
     try {
-      fotos.push(await rehostPhoto(supabase, row.id, i, sourceFotoUrls[i]));
+      fotos.push(
+        await rehostPhoto(supabase, {
+          bucket: BUCKET,
+          path: `terremoto/${row.id}-${i}.webp`,
+          fetchUrl: toProxyUrl(sourceFotoUrls[i]),
+          ua: UA,
+        }),
+      );
     } catch (err) {
       console.error(`  photo failed (${row.id}#${i}): ${err.message}`);
     }
