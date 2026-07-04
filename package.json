@@ -14,7 +14,8 @@
     "import-redh": "node scripts/import-redh.mjs",
     "rollback-redh": "node scripts/rollback-redh.mjs",
     "import-ayudapara": "node scripts/import-ayudapara.mjs",
-    "rollback-ayudapara": "node scripts/rollback-ayudapara.mjs"
+    "rollback-ayudapara": "node scripts/rollback-ayudapara.mjs",
+    "backfill-fotos": "node scripts/backfill-fotos.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.7",
@@ -46,6 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "jsdom": "^29.1.1",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^6",
     "vitest": "^4.1.9"

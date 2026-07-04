@@ -47,7 +47,7 @@ describe('LocationCard', () => {
     expect(link.className).toContain('min-w-0');
   });
 
-  it('shows a single large cover photo (the first one) through the resizing endpoint', () => {
+  it('shows a single large cover photo (the first one) served raw, not transformed', () => {
     const { container } = render(
       <LocationCard
         location={makeLocation({
@@ -63,8 +63,10 @@ describe('LocationCard', () => {
     // page. The cover is decorative (alt=""), so it carries no accessible name.
     const imgs = container.querySelectorAll('img');
     expect(imgs).toHaveLength(1);
-    expect(imgs[0].getAttribute('src')).toContain('/render/image/public/fotos/a.jpg');
-    expect(imgs[0].getAttribute('src')).toContain('width=');
+    expect(imgs[0].getAttribute('src')).toBe(
+      'https://x.supabase.co/storage/v1/object/public/fotos/a.jpg',
+    );
+    expect(imgs[0].getAttribute('src')).not.toContain('/render/image/');
   });
 
   it('exposes the photo count to screen readers next to the cover', () => {

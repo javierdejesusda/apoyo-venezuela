@@ -26,6 +26,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { requireEnv, requireServiceKey } from './lib/env.mjs';
+import { rehostPhoto } from './lib/rehost-photo.mjs';
 
 import {
   capTipos,
@@ -63,40 +64,6 @@ async function fetchCenters() {
   return body.centers;
 }
 
-const EXT_BY_TYPE = {
-  'image/jpeg': 'jpg',
-  'image/jpg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-  'image/avif': 'avif',
-};
-
-function inferExt(url, contentType) {
-  if (contentType && EXT_BY_TYPE[contentType.toLowerCase()]) {
-    return EXT_BY_TYPE[contentType.toLowerCase()];
-  }
-  const m = String(url).match(/\.(jpe?g|png|webp|gif|avif)(?:\?|$)/i);
-  return m ? m[1].toLowerCase().replace('jpeg', 'jpg') : 'jpg';
-}
-
-/** Download the source image and upload it to our public bucket; return URL. */
-async function rehostPhoto(supabase, centerId, srcUrl) {
-  const res = await fetch(srcUrl, { headers: { 'User-Agent': UA } });
-  if (!res.ok) throw new Error(`photo fetch ${res.status}`);
-  const contentType = res.headers.get('content-type') || 'image/jpeg';
-  if (!/^image\//i.test(contentType)) {
-    throw new Error(`non-image content-type ${contentType}`);
-  }
-  const buffer = Buffer.from(await res.arrayBuffer());
-  const path = `recolecta/${centerId}.${inferExt(srcUrl, contentType)}`;
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, buffer, { contentType, upsert: true });
-  if (error) throw error;
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-}
-
 async function upsertCenter(supabase, center, { dryRun }) {
   const { location, sourceRef, sourceFotoUrl, tiposResult } = transformCenter(center);
 
@@ -128,7 +95,14 @@ async function upsertCenter(supabase, center, { dryRun }) {
   const fotos = [];
   if (sourceFotoUrl) {
     try {
-      fotos.push(await rehostPhoto(supabase, center.id, sourceFotoUrl));
+      fotos.push(
+        await rehostPhoto(supabase, {
+          bucket: BUCKET,
+          path: `recolecta/${center.id}.webp`,
+          fetchUrl: sourceFotoUrl,
+          ua: UA,
+        }),
+      );
     } catch (err) {
       console.error(`  photo failed (${center.id}): ${err.message}`);
     }

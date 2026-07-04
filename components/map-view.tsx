@@ -24,7 +24,6 @@ import {
 
 import { PersonasAtrapadasBadge } from '@/components/status-badges';
 import { useTheme } from '@/components/theme-provider';
-import { transformedFotoUrl } from '@/lib/data/foto-url';
 import { resolveMapCoords } from '@/lib/data/geo';
 import { resolveAyudaPinTone } from '@/lib/data/selectors';
 import type { ExplorerMode, LocationWithNeeds } from '@/lib/data/types';
@@ -426,7 +425,7 @@ function HoverPreviewCard({
       {foto && !imgFailed && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={transformedFotoUrl(foto, { width: 360, height: 180, resize: 'cover' })}
+          src={foto}
           alt=""
           loading="lazy"
           onError={() => setImgFailed(true)}
