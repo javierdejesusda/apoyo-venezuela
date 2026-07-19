@@ -8,19 +8,25 @@ import { PageHeader } from '@/components/page-header';
 import { getStore } from '@/lib/data/store';
 import type { Fundraiser } from '@/lib/data/types';
 
-// Igual que home y zona: se sirve dinamica para que los cambios hechos fuera de
-// la app (borrados directos en la base, reset de datos) se reflejen sin esperar
-// un redeploy. Sin esto la lista quedaba congelada con campanas ya eliminadas.
-export const dynamic = 'force-dynamic';
+// ISR igual que home y zona: los envios dentro de la app llaman
+// revalidatePath('/recaudaciones') via app/actions.ts y se reflejan al
+// instante; los cambios hechos fuera de la app (borrados directos en la base)
+// se reflejan dentro de la ventana de 5 minutos. Antes era force-dynamic, pero
+// eso invocaba una funcion y una consulta a Supabase por cada visita.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Recaudaciones',
 };
 
 export default async function RecaudacionesPage() {
+  // Con ISR un render fallido queda cacheado y se sirve a todos los visitantes
+  // hasta la proxima regeneracion, asi que un fallo del store nunca debe
+  // disfrazarse del estado vacio "Aún no hay recaudaciones": null marca el
+  // fallo y renderiza un aviso de error explicito.
   const fundraisers = await getStore()
     .listFundraisers()
-    .catch((): Fundraiser[] => []);
+    .catch((): Fundraiser[] | null => null);
 
   return (
     <div className="mx-auto max-w-5xl space-y-10 py-8">
@@ -36,7 +42,17 @@ export default async function RecaudacionesPage() {
           Campañas activas
         </h2>
 
-        <FundraiserList fundraisers={fundraisers} />
+        {fundraisers === null ? (
+          <p
+            role="status"
+            className="rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-ink-soft"
+          >
+            No pudimos cargar las campañas en este momento. Intenta refrescar en unos
+            minutos.
+          </p>
+        ) : (
+          <FundraiserList fundraisers={fundraisers} />
+        )}
       </section>
 
       <section aria-labelledby="comparte-recaudacion">

@@ -19,11 +19,12 @@ import { NeedList } from '@/components/need-list';
 import { RequestRemovalForm } from '@/components/request-removal-form';
 import { ZonePhotoGallery } from '@/components/zone-photo-gallery';
 
-// ISR with 30-second revalidation. In-app writes call revalidatePath('/zona/<id>')
-// via app/actions.ts for instant on-demand revalidation. Out-of-band changes
-// (e.g. `npm run delete-report`, which bypasses the app) reflect within 30 s,
-// which is an acceptable trade-off for surviving high concurrent load.
-export const revalidate = 30;
+// ISR with 5-minute revalidation. In-app writes call revalidatePath('/zona/<id>')
+// via app/actions.ts for instant on-demand revalidation, so real reports show
+// up immediately; the background window only bounds out-of-band changes
+// (e.g. `npm run delete-report`, which bypasses the app). The long window
+// keeps Vercel compute near zero now that traffic is mostly crawlers.
+export const revalidate = 300;
 
 // Deduplicate the Supabase round-trip that generateMetadata and the page
 // component both need. React cache() memoises per request across module scope.
