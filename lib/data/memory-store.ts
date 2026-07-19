@@ -69,6 +69,10 @@ export function createMemoryStore(initial?: MemorySeed): MemoryDataStore {
   return {
     isDemo: true,
 
+    async ping() {
+      // Demo backend has no external dependency to keep alive.
+    },
+
     async listLocations(filters?: LocationFilters) {
       return sortLocations(applyFilters(compose(), filters));
     },

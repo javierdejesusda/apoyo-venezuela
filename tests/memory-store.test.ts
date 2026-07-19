@@ -82,6 +82,11 @@ describe('memory store', () => {
     expect(await store.getLocation('nope')).toBeNull();
   });
 
+  it('ping resolves without touching any data', async () => {
+    const store = createMemoryStore({ locations: [], needs: [] });
+    await expect(store.ping()).resolves.toBeUndefined();
+  });
+
   it('round-trips accuracyM on a created location', async () => {
     const store = createMemoryStore({ locations: [], needs: [] });
     const created = await store.createLocation({

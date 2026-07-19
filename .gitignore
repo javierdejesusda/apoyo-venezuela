@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# database dumps (contain reporter contact PII; never commit)
+/backups/
+
 # production
 /build
 

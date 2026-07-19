@@ -14,9 +14,10 @@
  *   node scripts/delete-report.mjs <location-uuid>           # preview, confirm, delete
  *   node scripts/delete-report.mjs <location-uuid> --yes     # skip the confirmation
  */
-import { spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { pathToFileURL } from 'node:url';
+
+import { runSupabase } from './lib/supabase-cli.mjs';
 
 const BUCKET = 'fotos';
 const PUBLIC_MARKER = `/storage/v1/object/public/${BUCKET}/`;
@@ -53,17 +54,6 @@ export function escapeSqlLiteral(value) {
 /** Builds the `ss://` URI the Supabase CLI uses to address a bucket object. */
 export function buildStorageUri(path) {
   return `ss:///${BUCKET}/${path}`;
-}
-
-function runSupabase(args) {
-  const result = spawnSync('supabase', args, { encoding: 'utf8' });
-  if (result.error) {
-    throw new Error(
-      `No se pudo ejecutar 'supabase'. ¿Está instalado, autenticado (supabase login) ` +
-        `y enlazado (supabase link)? Detalle: ${result.error.message}`,
-    );
-  }
-  return result;
 }
 
 /** Runs a SQL query against the linked project and returns its rows. */

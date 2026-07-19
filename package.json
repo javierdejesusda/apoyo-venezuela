@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "delete-report": "node scripts/delete-report.mjs",
+    "backup-db": "node scripts/backup-db.mjs",
     "import-redh": "node scripts/import-redh.mjs",
     "rollback-redh": "node scripts/rollback-redh.mjs",
     "import-ayudapara": "node scripts/import-ayudapara.mjs",
