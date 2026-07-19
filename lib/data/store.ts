@@ -25,6 +25,12 @@ export { PAGE_SIZE, REPORT_QUOTA_LIMIT, REPORT_QUOTA_WINDOW_MS } from './types';
 export interface DataStore {
   /** True when running on the in-memory demo backend (data is not shared). */
   isDemo: boolean;
+  /**
+   * Cheapest possible round-trip to the backend. Used by the daily keep-alive
+   * cron so the Supabase Free project does not auto-pause after inactivity.
+   * Resolves on success and rejects if the backend is unreachable.
+   */
+  ping(): Promise<void>;
   listLocations(filters?: LocationFilters): Promise<LocationWithNeeds[]>;
   /**
    * Returns a single page of filtered, sorted locations plus the total

@@ -177,6 +177,17 @@ export function createSupabaseStore(url: string, key: string): DataStore {
   return {
     isDemo: false,
 
+    async ping() {
+      // Cheapest possible query to keep the Supabase Free project from
+      // auto-pausing. Reads the PII-free realtime_signal singleton, which stays
+      // anon-readable after the lockdown migration revoked anon SELECT on
+      // locations, so the ping works even if getStore() falls back to the anon
+      // key. head:true returns no row body (data is null), so throw on any
+      // error so the cron route can surface a failed ping.
+      const { error } = await client.from('realtime_signal').select('id', { head: true });
+      if (error) throw error;
+    },
+
     async listLocations(filters?: LocationFilters) {
       // Embed each location's needs in a single round-trip rather than scanning
       // the entire needs table separately, which does not scale under load.

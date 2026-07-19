@@ -121,6 +121,18 @@ npm run delete-report -- --find "San Bernardino"   # find the report id
 npm run delete-report -- <location-uuid>            # preview, confirm, delete
 ```
 
+### Free tier: keep-alive and backups
+
+On the Supabase Free tier the project pauses after about 7 days without API activity. A daily Vercel Cron (`vercel.json`) calls `/api/cron/keep-alive`, which runs one cheap query to keep it awake. Set the optional `CRON_SECRET` environment variable to require an `Authorization: Bearer <CRON_SECRET>` header on that endpoint (Vercel Cron sends it automatically).
+
+The Free tier has no automated backups, so dump the database periodically with the authenticated Supabase CLI:
+
+```bash
+npm run backup-db   # writes backups/backup-YYYY-MM-DD.sql
+```
+
+Dumps contain reporter contact PII, so `backups/` is gitignored; never commit a dump.
+
 ## Scripts
 
 | Script | Description |
@@ -132,6 +144,7 @@ npm run delete-report -- <location-uuid>            # preview, confirm, delete
 | `npm run test` | Run the test suite (Vitest) |
 | `npm run typecheck` | Type-check with `tsc --noEmit` |
 | `npm run delete-report` | Admin: remove an erroneous report (row + needs + photos) via the Supabase CLI |
+| `npm run backup-db` | Admin: dump the linked database into `backups/` via the Supabase CLI |
 
 ## Project structure
 

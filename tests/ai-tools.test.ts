@@ -30,6 +30,7 @@ function stubStore(
 ): DataStore {
   return {
     isDemo: false,
+    ping: async () => {},
     listLocations,
     listLocationsPage: async (_, offset, limit) => {
       const all = await listLocations();

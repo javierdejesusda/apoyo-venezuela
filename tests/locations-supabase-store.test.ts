@@ -391,6 +391,29 @@ describe('supabase store getClusterForLocation', () => {
   });
 });
 
+describe('supabase store ping', () => {
+  it('runs a head-only keep-alive query and resolves', async () => {
+    // head:true returns no row body (data is null), so egress is a count header.
+    const select = vi.fn().mockResolvedValue({ data: null, error: null });
+    from.mockReturnValue({ select });
+
+    await expect(makeStore().ping()).resolves.toBeUndefined();
+
+    // realtime_signal is the PII-free singleton anon can still read after the
+    // lockdown migration revoked anon SELECT on locations.
+    expect(from).toHaveBeenCalledWith('realtime_signal');
+    expect(from).not.toHaveBeenCalledWith('locations');
+    expect(select).toHaveBeenCalledWith('id', { head: true });
+  });
+
+  it('throws when the keep-alive query returns an error', async () => {
+    const select = vi.fn().mockResolvedValue({ data: null, error: { message: 'unreachable' } });
+    from.mockReturnValue({ select });
+
+    await expect(makeStore().ping()).rejects.toBeTruthy();
+  });
+});
+
 describe('supabase store status updates go through validated RPCs', () => {
   it('updateLocationStatus calls set_location_status and maps the row', async () => {
     rpc.mockResolvedValue({ data: { ...LOCATION_ROW, status: 'estable' }, error: null });

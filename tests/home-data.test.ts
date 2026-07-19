@@ -25,6 +25,7 @@ function loc(over: Partial<LocationWithNeeds> = {}): LocationWithNeeds {
 function stubStore(listLocations: () => Promise<LocationWithNeeds[]>): DataStore {
   return {
     isDemo: false,
+    ping: async () => {},
     listLocations,
     listLocationsPage: async (_, offset, limit) => {
       const all = await listLocations();

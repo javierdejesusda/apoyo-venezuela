@@ -34,6 +34,7 @@ const canonicalView: ClusterCanonicalView = {
 function stubStore(getClusterForLocation: DataStore['getClusterForLocation']): DataStore {
   return {
     isDemo: false,
+    ping: async () => {},
     listLocations: async () => [],
     listLocationsPage: async () => ({ items: [], total: 0 }),
     getLocation: async () => zone(),

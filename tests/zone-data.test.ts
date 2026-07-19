@@ -24,6 +24,7 @@ function zone(): LocationWithNeeds {
 function stubStore(getLocation: DataStore['getLocation']): DataStore {
   return {
     isDemo: false,
+    ping: async () => {},
     listLocations: async () => [],
     listLocationsPage: async () => ({ items: [], total: 0 }),
     getLocation,
