@@ -125,7 +125,7 @@ npm run delete-report -- <location-uuid>            # preview, confirm, delete
 
 On the Supabase Free tier the project pauses after about 7 days without API activity. A daily Vercel Cron (`vercel.json`) calls `/api/cron/keep-alive`, which runs one cheap query to keep it awake. Set the optional `CRON_SECRET` environment variable to require an `Authorization: Bearer <CRON_SECRET>` header on that endpoint (Vercel Cron sends it automatically).
 
-The Free tier has no automated backups, so dump the database periodically with the authenticated Supabase CLI. Each run writes two files: a schema dump and a data-only dump (the schema is already versioned in `supabase/migrations/`, so the data is the part worth keeping):
+The Free tier has no automated backups, so dump the database periodically with the authenticated Supabase CLI. Docker Desktop must be running (the CLI uses a postgres image for `pg_dump`). Each run writes two files: a schema dump and a data-only dump (the schema is already versioned in `supabase/migrations/`, so the data is the part worth keeping):
 
 ```bash
 npm run backup-db   # writes backups/backup-YYYY-MM-DD-schema.sql and -data.sql
