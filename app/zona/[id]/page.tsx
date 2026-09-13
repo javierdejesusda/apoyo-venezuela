@@ -19,12 +19,15 @@ import { NeedList } from '@/components/need-list';
 import { RequestRemovalForm } from '@/components/request-removal-form';
 import { ZonePhotoGallery } from '@/components/zone-photo-gallery';
 
-// ISR with 5-minute revalidation. In-app writes call revalidatePath('/zona/<id>')
-// via app/actions.ts for instant on-demand revalidation, so real reports show
-// up immediately; the background window only bounds out-of-band changes
-// (e.g. `npm run delete-report`, which bypasses the app). The long window
-// keeps Vercel compute near zero now that traffic is mostly crawlers.
-export const revalidate = 300;
+// ISR with 24-hour background revalidation. In-app writes call
+// revalidatePath('/zona/<id>') via app/actions.ts for instant on-demand
+// revalidation, so real reports show up immediately, and open tabs re-render
+// through the Supabase realtime signal; the background window only bounds
+// out-of-band changes (e.g. `npm run delete-report`, which bypasses the app).
+// It is a full day because Vercel bills ISR per cache write and there is one
+// cache entry per report, so any window here is multiplied by thousands of
+// paths. tests/isr-budget.test.ts holds this against the free-tier allowance.
+export const revalidate = 86400;
 
 // Deduplicate the Supabase round-trip that generateMetadata and the page
 // component both need. React cache() memoises per request across module scope.
