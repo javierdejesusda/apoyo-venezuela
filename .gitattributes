@@ -1,0 +1,4 @@
+# Node ops scripts must keep LF. A CRLF right after the `#!` shebang line stops
+# the bundler from stripping it, so `scripts/*.mjs` fail to parse under Vitest
+# on Windows checkouts while still passing on Linux CI.
+*.mjs text eol=lf
