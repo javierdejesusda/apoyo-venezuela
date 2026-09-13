@@ -321,3 +321,15 @@ describe('GET /api/zonas soloVoluntarios filter', () => {
     );
   });
 });
+
+describe('zonas route caching', () => {
+  it('lets the CDN serve repeat queries instead of hitting a function', async () => {
+    mockListLocationsPage.mockResolvedValue({ items: [], total: 0 });
+
+    const res = await GET(new Request('http://localhost/api/zonas'));
+
+    expect(res.headers.get('Cache-Control')).toBe(
+      'public, s-maxage=600, stale-while-revalidate=3600',
+    );
+  });
+});
