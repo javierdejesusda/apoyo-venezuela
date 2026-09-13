@@ -36,14 +36,21 @@ describe('keep-alive cron', () => {
     expect(keepAlive, 'removing this cron pauses Supabase within a week').toBeDefined();
   });
 
-  /** Vercel Hobby rejects a deployment whose cron runs more than once a day. */
+  /**
+   * Vercel Hobby rejects a deployment whose cron runs more than once a day, so
+   * the minute and hour fields each have to name a single value. Rejecting only
+   * a wildcard is not enough: a list such as `8,20`, a range such as `8-10` and
+   * a step interval all fire several times a day without containing a wildcard
+   * themselves, so each field must be a bare number.
+   */
   it('runs at most once a day', () => {
     const crons = readVercelConfig().crons ?? [];
+    const pinsOneValue = (field: string) => /^\d+$/.test(field);
 
     for (const cron of crons) {
       const [minute, hour] = cron.schedule.split(' ');
-      expect(minute, `${cron.path} must pin a minute`).not.toContain('*');
-      expect(hour, `${cron.path} must pin an hour`).not.toContain('*');
+      expect(pinsOneValue(minute), `${cron.path} must pin one minute`).toBe(true);
+      expect(pinsOneValue(hour), `${cron.path} must pin one hour`).toBe(true);
     }
   });
 });
