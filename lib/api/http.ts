@@ -12,10 +12,12 @@ const ALLOW_HEADERS = 'Content-Type';
 
 /**
  * Edge cache directive for successful reads. Vercel's CDN serves cached copies
- * for 30s and revalidates in the background for another 60s, so scraping and
- * traffic spikes hit the CDN instead of Supabase.
+ * for 10 minutes and revalidates in the background for another hour, so
+ * scraping and traffic spikes hit the CDN instead of a function and Supabase.
+ * The window is long because automated clients, not people, drive this API:
+ * anything writing through the app revalidates the pages it changed anyway.
  */
-const CACHE_CONTROL = 'public, s-maxage=30, stale-while-revalidate=60';
+const CACHE_CONTROL = 'public, s-maxage=600, stale-while-revalidate=3600';
 
 /** Returns a fresh copy of the CORS headers so callers never mutate shared state. */
 export function corsHeaders(): Record<string, string> {

@@ -56,6 +56,65 @@ export function buildStorageUri(path) {
   return `ss:///${BUCKET}/${path}`;
 }
 
+/**
+ * Builds the request that drops the deleted report from the page cache.
+ *
+ * This script writes straight to the database, so the app never learns the row
+ * is gone: pages are cached for a long time to stay inside the Vercel ISR write
+ * budget, and without this the deleted report (reporter name and phone
+ * included) would stay readable at its own URL until the window expires.
+ *
+ * Returns null when NEXT_PUBLIC_SITE_URL or CRON_SECRET is unset, which is the
+ * normal case for a local run against a database with no deployment behind it.
+ *
+ * @param {string} id Location UUID whose page should be dropped from the cache.
+ * @param {Record<string, string | undefined>} [env] Environment to read from.
+ */
+export function buildRevalidateRequest(id, env = process.env) {
+  const siteUrl = env.NEXT_PUBLIC_SITE_URL;
+  const secret = env.CRON_SECRET;
+  if (!siteUrl || !secret) return null;
+
+  return {
+    url: `${siteUrl.replace(/\/+$/, '')}/api/revalidate`,
+    init: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify({ paths: ['/', `/zona/${id}`] }),
+    },
+  };
+}
+
+/**
+ * Asks the deployment to drop the deleted report's cached pages. Failures are
+ * reported but never fatal: the row is already gone, and the page expires on
+ * its own window regardless.
+ */
+async function revalidateDeletedReport(id) {
+  const request = buildRevalidateRequest(id);
+  if (!request) {
+    console.warn(
+      '  Aviso: NEXT_PUBLIC_SITE_URL o CRON_SECRET no están definidos, ' +
+        'la página cacheada del reporte seguirá visible hasta que expire.',
+    );
+    return;
+  }
+
+  try {
+    const res = await fetch(request.url, request.init);
+    if (!res.ok) {
+      console.warn(`  Aviso: la revalidación respondió ${res.status}.`);
+    }
+  } catch (error) {
+    console.warn(
+      `  Aviso: no se pudo revalidar. Detalle: ${error instanceof Error ? error.message : error}`,
+    );
+  }
+}
+
 /** Runs a SQL query against the linked project and returns its rows. */
 function query(sql) {
   const result = runSupabase(['db', 'query', '--linked', '--output', 'json', sql]);
@@ -189,6 +248,8 @@ async function main(argv) {
     process.exitCode = 1;
     return;
   }
+
+  await revalidateDeletedReport(id);
 
   console.log(
     `\nListo. Reporte ${id} borrado. Fotos eliminadas: ${removed}/${fotos.length}. ` +

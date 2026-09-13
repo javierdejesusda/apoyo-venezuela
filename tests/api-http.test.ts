@@ -36,7 +36,7 @@ describe('jsonOk', () => {
     const res = jsonOk({});
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
     expect(res.headers.get('Cache-Control')).toBe(
-      'public, s-maxage=30, stale-while-revalidate=60',
+      'public, s-maxage=600, stale-while-revalidate=3600',
     );
   });
 });

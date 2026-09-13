@@ -11,6 +11,16 @@ import { EMERGENCY_STATUSES, NEED_CATEGORIES, URGENCIES } from '@/lib/data/types
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Lets Vercel's CDN answer repeat queries so identical filter and pagination
+ * requests do not each cost a function invocation and a Supabase query. The
+ * route stays `force-dynamic` because the response varies by query string;
+ * this is an HTTP-level directive, independent of Next's ISR cache. A report
+ * submitted through the app can take up to the window to appear in a filtered
+ * list, which is the accepted trade for keeping idle cost near zero.
+ */
+const CACHE_CONTROL = 'public, s-maxage=600, stale-while-revalidate=3600';
+
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
 
@@ -50,5 +60,8 @@ export async function GET(request: Request): Promise<Response> {
   const publicItems = items.map(toClientSafeLocation);
   const nextCursor = all ? null : offset + items.length < total ? offset + items.length : null;
 
-  return Response.json({ items: publicItems, total, nextCursor });
+  return Response.json(
+    { items: publicItems, total, nextCursor },
+    { headers: { 'Cache-Control': CACHE_CONTROL } },
+  );
 }

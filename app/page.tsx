@@ -11,12 +11,13 @@ import { toClientSafeLocation } from '@/lib/data/selectors';
 import { getStore, PAGE_SIZE } from '@/lib/data/store';
 import { loadSismos } from '@/lib/sismos/load';
 
-// ISR with 5-minute revalidation. In-app writes call revalidatePath('/')
+// ISR with hourly background revalidation. In-app writes call revalidatePath('/')
 // via app/actions.ts for instant on-demand revalidation, so real reports show
-// up immediately; the background window only bounds out-of-band changes
-// (e.g. `npm run delete-report`, which bypasses the app). The long window
-// keeps Vercel compute near zero now that traffic is mostly crawlers.
-export const revalidate = 300;
+// up immediately, and open tabs re-render through the Supabase realtime signal;
+// the background window only bounds out-of-band changes (e.g. `npm run
+// delete-report`, which bypasses the app). tests/isr-budget.test.ts holds this
+// against the free-tier ISR write allowance.
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const [{ locations, stats, states, ciudadesByEstado, loadFailed }, sismos] =

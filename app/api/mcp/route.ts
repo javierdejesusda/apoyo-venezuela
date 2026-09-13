@@ -262,36 +262,23 @@ const handler = createMcpHandler(
 );
 
 export const runtime = 'nodejs';
-export const maxDuration = 30;
+export const maxDuration = 10;
 
-const SSE_HEARTBEAT_MS = 20_000;
-
-/** Idle SSE stream so GET-probing connectors see a live server, not a 405. */
-export function GET(request: Request): Response {
-  const encoder = new TextEncoder();
-  let heartbeat: ReturnType<typeof setInterval>;
-
+/**
+ * Answers a GET probe as an event stream so connectors see a live server
+ * rather than a 405, then closes at once.
+ *
+ * This used to hold the stream open with a heartbeat until `maxDuration`,
+ * which meant every probe (and every bot that walks `/api/*`) cost a function
+ * held for the full ceiling while doing nothing. None of the tools need
+ * server-initiated pushes, so the open connection bought only the probe's
+ * 200, and that survives closing immediately.
+ */
+export function GET(): Response {
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      controller.enqueue(encoder.encode(': connected\n\n'));
-      heartbeat = setInterval(() => {
-        try {
-          controller.enqueue(encoder.encode(': ping\n\n'));
-        } catch {
-          clearInterval(heartbeat);
-        }
-      }, SSE_HEARTBEAT_MS);
-      request.signal.addEventListener('abort', () => {
-        clearInterval(heartbeat);
-        try {
-          controller.close();
-        } catch {
-          // Stream already closed.
-        }
-      });
-    },
-    cancel() {
-      clearInterval(heartbeat);
+      controller.enqueue(new TextEncoder().encode(': connected\n\n'));
+      controller.close();
     },
   });
 
@@ -299,7 +286,6 @@ export function GET(request: Request): Response {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
     },
   });
 }

@@ -11,9 +11,9 @@ import type { Fundraiser } from '@/lib/data/types';
 // ISR igual que home y zona: los envios dentro de la app llaman
 // revalidatePath('/recaudaciones') via app/actions.ts y se reflejan al
 // instante; los cambios hechos fuera de la app (borrados directos en la base)
-// se reflejan dentro de la ventana de 5 minutos. Antes era force-dynamic, pero
+// se reflejan dentro de la ventana de una hora. Antes era force-dynamic, pero
 // eso invocaba una funcion y una consulta a Supabase por cada visita.
-export const revalidate = 300;
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Recaudaciones',

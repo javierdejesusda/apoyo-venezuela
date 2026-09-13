@@ -109,7 +109,7 @@ describe('GET /api/v1/zonas', () => {
     mockListLocationsPage.mockResolvedValue({ items: [], total: 0 });
     const res = await getZonas(new Request('http://localhost/api/v1/zonas'));
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
-    expect(res.headers.get('Cache-Control')).toContain('s-maxage=30');
+    expect(res.headers.get('Cache-Control')).toContain('s-maxage=600');
   });
 
   it('defaults to a page size of 20 and forwards cursor', async () => {
