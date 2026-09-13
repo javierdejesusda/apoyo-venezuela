@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildRevalidateRequest,
   buildStorageUri,
   escapeSqlLiteral,
   fotoUrlToStoragePath,
@@ -64,5 +65,35 @@ describe('escapeSqlLiteral', () => {
 describe('buildStorageUri', () => {
   it('builds an ss:// uri into the fotos bucket', () => {
     expect(buildStorageUri('abc.jpg')).toBe('ss:///fotos/abc.jpg');
+  });
+});
+
+describe('buildRevalidateRequest', () => {
+  const id = '449e15fa-b72d-4050-ba42-d17f2cff375b';
+  const env = {
+    NEXT_PUBLIC_SITE_URL: 'https://apoyovenezuela.com',
+    CRON_SECRET: 'top-secret',
+  };
+
+  it('targets the revalidate endpoint with the deleted zone and the home page', () => {
+    const req = buildRevalidateRequest(id, env);
+    if (!req) throw new Error('expected a revalidate request');
+
+    expect(req.url).toBe('https://apoyovenezuela.com/api/revalidate');
+    expect(req.init.method).toBe('POST');
+    expect(req.init.headers.authorization).toBe('Bearer top-secret');
+    expect(JSON.parse(req.init.body)).toEqual({ paths: ['/', `/zona/${id}`] });
+  });
+
+  it('tolerates a site url with a trailing slash', () => {
+    const req = buildRevalidateRequest(id, { ...env, NEXT_PUBLIC_SITE_URL: 'https://x.com/' });
+    if (!req) throw new Error('expected a revalidate request');
+
+    expect(req.url).toBe('https://x.com/api/revalidate');
+  });
+
+  it('returns null when the site url or secret is missing', () => {
+    expect(buildRevalidateRequest(id, { CRON_SECRET: 'top-secret' })).toBeNull();
+    expect(buildRevalidateRequest(id, { NEXT_PUBLIC_SITE_URL: 'https://x.com' })).toBeNull();
   });
 });
