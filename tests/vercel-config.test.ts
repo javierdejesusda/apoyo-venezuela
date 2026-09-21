@@ -4,14 +4,12 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * `vercel.json` holds the two deployment settings that decide what this project
- * costs while nobody is using it, and both fail silently if they are changed:
- * nothing in the build output or the test suite would otherwise notice.
+ * `vercel.json` holds the deployment settings that decide what this project
+ * costs while nobody is using it, and they fail silently if they are changed:
+ * nothing in the build output would otherwise notice.
  *
- * The site runs on the Vercel free tier, so the binding constraint is idle cost
- * rather than traffic. Builds are the last recurring consumer: every push to any
- * branch triggers a full preview build, and the ISR write budget guarded by
- * `isr-budget.test.ts` already covers the other one.
+ * The site is a single static page now, so the only thing left that can consume
+ * anything on its own is a scheduled job or an automatic build.
  */
 interface VercelConfig {
   crons?: Array<{ path: string; schedule: string }>;
@@ -22,36 +20,15 @@ function readVercelConfig(): VercelConfig {
   return JSON.parse(readFileSync(join(process.cwd(), 'vercel.json'), 'utf8')) as VercelConfig;
 }
 
-describe('keep-alive cron', () => {
+describe('scheduled jobs', () => {
   /**
-   * Supabase Free pauses a project after roughly seven days without API
-   * activity, which takes the whole site down with it. This cron is the only
-   * thing keeping the database awake, so it is load-bearing despite looking
-   * like an easy invocation to save.
+   * The keep-alive cron existed to stop Supabase Free from pausing the project.
+   * Nothing reads that database through this deployment any more, and the route
+   * the cron called is gone, so a surviving schedule would only spend function
+   * invocations calling a path that returns a redirect.
    */
-  it('still schedules the keep-alive ping', () => {
-    const crons = readVercelConfig().crons ?? [];
-    const keepAlive = crons.find((cron) => cron.path === '/api/cron/keep-alive');
-
-    expect(keepAlive, 'removing this cron pauses Supabase within a week').toBeDefined();
-  });
-
-  /**
-   * Vercel Hobby rejects a deployment whose cron runs more than once a day, so
-   * the minute and hour fields each have to name a single value. Rejecting only
-   * a wildcard is not enough: a list such as `8,20`, a range such as `8-10` and
-   * a step interval all fire several times a day without containing a wildcard
-   * themselves, so each field must be a bare number.
-   */
-  it('runs at most once a day', () => {
-    const crons = readVercelConfig().crons ?? [];
-    const pinsOneValue = (field: string) => /^\d+$/.test(field);
-
-    for (const cron of crons) {
-      const [minute, hour] = cron.schedule.split(' ');
-      expect(pinsOneValue(minute), `${cron.path} must pin one minute`).toBe(true);
-      expect(pinsOneValue(hour), `${cron.path} must pin one hour`).toBe(true);
-    }
+  it('schedules nothing, since no route is left to call', () => {
+    expect(readVercelConfig().crons ?? []).toEqual([]);
   });
 });
 

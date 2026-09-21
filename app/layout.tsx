@@ -37,11 +37,6 @@ export const metadata: Metadata = {
   category: 'public safety',
   formatDetection: { telephone: false },
   alternates: { canonical: '/' },
-  appleWebApp: {
-    capable: true,
-    title: 'Apoyo VE',
-    statusBarStyle: 'black-translucent',
-  },
   openGraph: {
     type: 'website',
     locale: 'es_VE',
