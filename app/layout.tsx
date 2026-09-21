@@ -26,9 +26,9 @@ const sans = IBM_Plex_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'Apoyo Venezuela dejó de operar',
+  title: 'Apoyo Venezuela ahora trabaja en Red Quipu',
   description:
-    'Apoyo Venezuela dejó de operar. La coordinación de ayuda tras el sismo de junio de 2026 en Venezuela continúa en la red de iniciativas, con Red Quipu como plataforma central.',
+    'El trabajo de Apoyo Venezuela tras el sismo de junio de 2026 continúa en Red Quipu, la plataforma central que reúne la red de iniciativas de ayuda en Venezuela.',
   applicationName: 'Apoyo Venezuela',
   keywords: ['terremoto', 'Venezuela', 'ayuda', 'emergencia', 'sismo', 'red de iniciativas', 'Red Quipu'],
   authors: [{ name: 'Apoyo Venezuela' }],
@@ -42,15 +42,15 @@ export const metadata: Metadata = {
     locale: 'es_VE',
     url: SITE_URL,
     siteName: 'Apoyo Venezuela',
-    title: 'Apoyo Venezuela dejó de operar',
+    title: 'Apoyo Venezuela ahora trabaja en Red Quipu',
     description:
-      'La coordinación de ayuda continúa en la red de iniciativas, con Red Quipu como plataforma central.',
+      'El trabajo continúa en Red Quipu, la plataforma central que reúne la red de iniciativas.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Apoyo Venezuela dejó de operar',
+    title: 'Apoyo Venezuela ahora trabaja en Red Quipu',
     description:
-      'La coordinación de ayuda continúa en la red de iniciativas, con Red Quipu como plataforma central.',
+      'El trabajo continúa en Red Quipu, la plataforma central que reúne la red de iniciativas.',
   },
   robots: {
     index: true,

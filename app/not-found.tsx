@@ -16,8 +16,8 @@ export default function NotFound() {
           <p className="text-5xl font-semibold text-ink-faint">404</p>
           <h1 className="text-xl font-semibold text-ink">Página no encontrada</h1>
           <p className="text-sm text-ink-soft">
-            Apoyo Venezuela dejó de operar y esta dirección ya no existe. En
-            el inicio está la red de iniciativas que continúa la coordinación.
+            Esta dirección ya no existe. El trabajo continúa en Red Quipu, y en el
+            inicio tienes esa plataforma junto al resto de la red de iniciativas.
           </p>
         </div>
 

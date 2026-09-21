@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   CENTRAL_PLATFORM,
   INITIATIVE_CATEGORIES,
-  INITIATIVE_LEAD,
 } from '@/lib/data/red-iniciativas';
 
 describe('red de iniciativas data', () => {
@@ -14,10 +13,6 @@ describe('red de iniciativas data', () => {
   it('points to redquipu as the central platform', () => {
     expect(CENTRAL_PLATFORM.url).toBe('https://redquipu.com');
     expect(CENTRAL_PLATFORM.name.length).toBeGreaterThan(0);
-  });
-
-  it('credits the lead organizer', () => {
-    expect(INITIATIVE_LEAD).toMatch(/alberto perdomo/i);
   });
 
   it('gives every category a unique slug', () => {

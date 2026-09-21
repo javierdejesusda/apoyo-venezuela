@@ -8,7 +8,6 @@ import { EMERGENCY_SHORTCODES } from '@/lib/data/emergency-shortcodes';
 import {
   CENTRAL_PLATFORM,
   INITIATIVE_CATEGORIES,
-  INITIATIVE_LEAD,
 } from '@/lib/data/red-iniciativas';
 import { telHref } from '@/lib/utils';
 
@@ -17,12 +16,31 @@ afterEach(() => {
 });
 
 describe('home page rendering', () => {
-  it('announces the transition in the level-1 heading', () => {
+  /**
+   * The page frames the change as the work moving on, not as a site dying.
+   * Leading with the shutdown would tell a visitor in need to give up, when
+   * what they actually need is where to go next.
+   */
+  it('names the destination in the level-1 heading', () => {
     render(<HomePage />);
 
     expect(
-      screen.getByRole('heading', { level: 1, name: /dejó de operar/i }),
+      screen.getByRole('heading', { level: 1, name: new RegExp(CENTRAL_PLATFORM.name, 'i') }),
     ).toBeTruthy();
+  });
+
+  it('does not lead with the site having stopped', () => {
+    render(<HomePage />);
+
+    expect(
+      screen.getByRole('heading', { level: 1 }).textContent,
+    ).not.toMatch(/dejó de operar|fuera de servicio/i);
+  });
+
+  it('still says plainly that the map and reports are not here any more', () => {
+    const { container } = render(<HomePage />);
+
+    expect(container.textContent).toMatch(/ya no est[aá]n disponibles aqu[ií]/i);
   });
 
   it('tells people the coordination continues in the initiative network', () => {
@@ -42,10 +60,15 @@ describe('home page rendering', () => {
     expect(central[0]).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('keeps crediting the lead organizer of the network', () => {
+  /**
+   * The page credits the initiatives, never the people behind them. Naming an
+   * individual on a page nobody is maintaining turns a volunteer into a
+   * permanent, unasked-for point of contact.
+   */
+  it('names no individual organizer', () => {
     const { container } = render(<HomePage />);
 
-    expect(container.textContent).toContain(INITIATIVE_LEAD);
+    expect(container.textContent).not.toMatch(/liderada por|Perdomo/i);
   });
 
   it('maps an icon for every category slug', () => {

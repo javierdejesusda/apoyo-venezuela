@@ -100,7 +100,7 @@ export function renderOgImage(): ImageResponse {
             Apoyo Venezuela
           </div>
           <div style={{ display: 'flex', fontSize: 40, color: '#aeb8cd', marginTop: 20 }}>
-            Dejó de operar. La coordinación continúa en Red Quipu
+            Ahora trabajamos en Red Quipu
           </div>
         </div>
 

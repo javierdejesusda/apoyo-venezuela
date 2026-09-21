@@ -20,9 +20,6 @@ export interface InitiativeCategory {
   urls: string[];
 }
 
-/** Person credited as the lead organizer of the network. */
-export const INITIATIVE_LEAD = 'Alberto Perdomo';
-
 /** Single entry point that aggregates every initiative in one place. */
 export const CENTRAL_PLATFORM = {
   name: 'Red Quipu',

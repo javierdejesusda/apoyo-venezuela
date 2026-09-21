@@ -24,11 +24,7 @@ import {
 import { PageHeader } from '@/components/page-header';
 import { VenezuelaSilhouette } from '@/components/ui/venezuela-silhouette';
 import { EMERGENCY_SHORTCODES } from '@/lib/data/emergency-shortcodes';
-import {
-  CENTRAL_PLATFORM,
-  INITIATIVE_CATEGORIES,
-  INITIATIVE_LEAD,
-} from '@/lib/data/red-iniciativas';
+import { CENTRAL_PLATFORM, INITIATIVE_CATEGORIES } from '@/lib/data/red-iniciativas';
 import { toneClasses, type Tone } from '@/lib/status';
 import { cn, telHref } from '@/lib/utils';
 
@@ -138,24 +134,24 @@ export default function HomePage() {
     <div className="mx-auto max-w-2xl space-y-12 py-6">
       <PageHeader
         icon={Info}
-        eyebrow="Aviso"
-        title="Apoyo Venezuela dejó de operar"
-        description="Este sitio ya no recibe reportes ni publica necesidades por zona. La coordinación de ayuda continúa en la red de iniciativas que se organizó tras el sismo de junio de 2026."
+        eyebrow="Nueva etapa"
+        title={`Ahora trabajamos en ${CENTRAL_PLATFORM.name}`}
+        description={`El esfuerzo que empezó aquí tras el sismo de junio de 2026 se sumó a ${CENTRAL_PLATFORM.name}, donde la red de iniciativas se coordina en un solo lugar. Allí continúa el trabajo, y aquí abajo tienes todos los canales.`}
       />
 
       <aside
-        aria-label="Aviso de cierre"
+        aria-label="Qué cambió"
         className="flex items-start gap-3 rounded-2xl border border-warning/25 bg-warning/10 p-4 md:p-5"
       >
         <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden />
         <div className="space-y-2 text-sm leading-relaxed text-ink-soft">
           <p>
             El mapa de zonas afectadas, los reportes y los teléfonos de emergencia ya no
-            están disponibles aquí.
+            están disponibles aquí. Esa coordinación se hace ahora en la red.
           </p>
           <p>
-            Si necesitas ayuda o quieres apoyar, usa los canales de la red que se listan más
-            abajo.
+            Si necesitas ayuda o quieres apoyar, empieza por {CENTRAL_PLATFORM.name} o usa
+            los canales que se listan más abajo.
           </p>
           <p className="font-semibold text-ink">
             Ante una emergencia que ponga en riesgo la vida, el número depende de tu
@@ -197,8 +193,7 @@ export default function HomePage() {
             </h2>
             <p className="max-w-prose text-hero-ink-soft">
               {CENTRAL_PLATFORM.name} reúne y enlaza cada esfuerzo de esta red en un solo
-              lugar. Iniciativa liderada por{' '}
-              <strong className="font-semibold text-hero-ink">{INITIATIVE_LEAD}</strong>.
+              lugar, para que encuentres el canal correcto sin recorrer sitio por sitio.
             </p>
             <a
               href={CENTRAL_PLATFORM.url}
@@ -235,7 +230,7 @@ export default function HomePage() {
         })}
       </section>
 
-      <section aria-label="Nota de cierre">
+      <section aria-label="Nota final">
         <Card className="border-border bg-surface-2">
           <div className="flex items-start gap-3">
             <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-600 dark:bg-brand-900/30">

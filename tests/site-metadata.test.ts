@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import manifest from '@/app/manifest';
 import { alt as openGraphAlt } from '@/app/opengraph-image';
 import sitemap from '@/app/sitemap';
+import { CENTRAL_PLATFORM } from '@/lib/data/red-iniciativas';
 import { alt as twitterAlt } from '@/app/twitter-image';
 
 /**
@@ -38,10 +39,21 @@ describe('web app manifest', () => {
 });
 
 describe('social share cards', () => {
-  it('describe the transition rather than the map', () => {
+  /**
+   * A shared link is often the only thing someone reads, so the card has to
+   * name where the work moved to. Leading with the site having stopped would
+   * read as "nothing to do here" to someone who still needs help.
+   */
+  it('name the destination rather than the map', () => {
     for (const alt of [openGraphAlt, twitterAlt]) {
       expect(alt).not.toMatch(/coordinaci[oó]n de ayuda/i);
-      expect(alt).toMatch(/dej[oó] de operar/i);
+      expect(alt).toMatch(new RegExp(CENTRAL_PLATFORM.name, 'i'));
+    }
+  });
+
+  it('do not lead with the site having stopped', () => {
+    for (const alt of [openGraphAlt, twitterAlt]) {
+      expect(alt).not.toMatch(/dej[oó] de operar|fuera de servicio/i);
     }
   });
 });
