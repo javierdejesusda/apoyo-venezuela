@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Apoyo Venezuela',
     short_name: 'Apoyo VE',
     description:
-      'Apoyo Venezuela dejó de operar. La coordinación de ayuda continúa en la red de iniciativas.',
+      'El trabajo de Apoyo Venezuela continúa en Red Quipu, donde se coordina la red de iniciativas.',
     start_url: '/',
     scope: '/',
     display: 'browser',

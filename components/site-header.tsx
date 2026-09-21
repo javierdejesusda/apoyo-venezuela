@@ -18,7 +18,7 @@ export function SiteHeader() {
               Apoyo Venezuela
             </span>
             <span className="eyebrow mt-0.5 text-[0.5rem] text-ink-faint">
-              Sitio fuera de servicio
+              Ahora en Red Quipu
             </span>
           </span>
         </div>
