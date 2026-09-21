@@ -10,6 +10,7 @@ import {
   Megaphone,
   Package,
   PawPrint,
+  Phone,
   Siren,
   Stethoscope,
   Tent,
@@ -22,13 +23,14 @@ import {
 
 import { PageHeader } from '@/components/page-header';
 import { VenezuelaSilhouette } from '@/components/ui/venezuela-silhouette';
+import { EMERGENCY_SHORTCODES } from '@/lib/data/emergency-shortcodes';
 import {
   CENTRAL_PLATFORM,
   INITIATIVE_CATEGORIES,
   INITIATIVE_LEAD,
 } from '@/lib/data/red-iniciativas';
 import { toneClasses, type Tone } from '@/lib/status';
-import { cn, telHref } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 /**
  * Lucide icon per category slug; kept here so the data layer stays UI-free.
@@ -153,15 +155,28 @@ export default function HomePage() {
           </p>
           <p>
             Si necesitas ayuda o quieres apoyar, usa los canales de la red que se listan más
-            abajo. Ante una emergencia que ponga en riesgo la vida, llama al{' '}
-            <a
-              href={telHref('911')}
-              className="font-semibold text-danger underline underline-offset-2"
-            >
-              911
-            </a>
-            .
+            abajo.
           </p>
+          <div className="space-y-2">
+            <p className="font-semibold text-ink">
+              Ante una emergencia que ponga en riesgo la vida, el número depende de tu
+              operadora:
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {EMERGENCY_SHORTCODES.map((entry) => (
+                <li key={entry.code}>
+                  <a
+                    href={entry.href}
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-danger/30 bg-surface px-3 py-2 transition-colors hover:border-danger/60"
+                  >
+                    <Phone className="h-4 w-4 shrink-0 text-danger" aria-hidden />
+                    <span className="font-semibold text-danger">{entry.code}</span>
+                    <span className="text-ink-soft">{entry.carrier}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </aside>
 

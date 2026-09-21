@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import * as homePageModule from '@/app/page';
 import HomePage, { CATEGORY_ICONS } from '@/app/page';
+import { EMERGENCY_SHORTCODES } from '@/lib/data/emergency-shortcodes';
 import {
   CENTRAL_PLATFORM,
   INITIATIVE_CATEGORIES,
@@ -73,6 +74,25 @@ describe('home page rendering', () => {
         expect(link).toHaveAttribute('target', '_blank');
         expect(link).toHaveAttribute('rel', 'noopener noreferrer');
       }
+    }
+  });
+
+  it('offers an emergency number for every carrier, not just one', () => {
+    render(<HomePage />);
+
+    for (const entry of EMERGENCY_SHORTCODES) {
+      const matches = screen
+        .getAllByRole('link')
+        .filter((link) => link.getAttribute('href') === entry.href);
+      expect(matches.length).toBe(1);
+    }
+  });
+
+  it('says which network each emergency code is dialled from', () => {
+    const { container } = render(<HomePage />);
+
+    for (const entry of EMERGENCY_SHORTCODES) {
+      expect(container.textContent).toContain(entry.carrier);
     }
   });
 
