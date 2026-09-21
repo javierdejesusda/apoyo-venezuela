@@ -10,21 +10,14 @@ import {
   CircleHelp,
   Clock,
   Droplets,
-  HandHeart,
-  HeartHandshake,
-  HeartPulse,
-  Hospital,
   Minus,
   Package,
-  Phone,
-  PhoneCall,
   Pill,
   Radio,
   ShieldCheck,
   Shirt,
   Siren,
   SprayCan,
-  Stethoscope,
   Tent,
   TriangleAlert,
   Truck,
@@ -35,7 +28,6 @@ import {
 } from 'lucide-react';
 
 import type {
-  ContactCategory,
   EmergencyStatus,
   NeedCategory,
   NeedStatus,
@@ -193,15 +185,3 @@ export const categoryMeta: Record<NeedCategory, Meta> = {
   otro: { label: 'Otro', tone: 'neutral', icon: Package },
 };
 
-export const contactCategoryMeta: Record<ContactCategory, Meta> = {
-  hotline: { label: 'Emergencia', tone: 'danger', icon: PhoneCall },
-  proteccion_civil: { label: 'Protección Civil', tone: 'brand', icon: ShieldCheck },
-  bomberos: { label: 'Bomberos', tone: 'danger', icon: Siren },
-  cruz_roja: { label: 'Cruz Roja', tone: 'danger', icon: HeartPulse },
-  policia: { label: 'Policía', tone: 'brand', icon: ShieldCheck },
-  hospital: { label: 'Hospital', tone: 'success', icon: Hospital },
-  medico: { label: 'Médico', tone: 'success', icon: Stethoscope },
-  rescate: { label: 'Rescate', tone: 'warning', icon: HandHeart },
-  apoyo_psicologico: { label: 'Apoyo psicológico', tone: 'brand', icon: HeartHandshake },
-  otro: { label: 'Otro', tone: 'neutral', icon: Phone },
-};
