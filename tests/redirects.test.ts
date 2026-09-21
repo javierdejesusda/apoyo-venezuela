@@ -79,12 +79,10 @@ describe('shutdown redirect', () => {
       '/icon.svg',
       '/manifest.webmanifest',
       '/sw.js',
-      '/offline.html',
       '/robots.txt',
       '/sitemap.xml',
       '/opengraph-image',
       '/twitter-image',
-      '/apple-icon',
     ]) {
       expect(matches.test(path), `${path} must still be served`).toBe(false);
     }

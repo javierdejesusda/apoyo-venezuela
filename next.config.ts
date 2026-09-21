@@ -13,12 +13,10 @@ const SERVED_PATHS = [
   "icon[.]svg",
   "manifest[.]webmanifest",
   "sw[.]js",
-  "offline[.]html",
   "robots[.]txt",
   "sitemap[.]xml",
   "opengraph-image",
   "twitter-image",
-  "apple-icon",
 ].join("|");
 
 /**
