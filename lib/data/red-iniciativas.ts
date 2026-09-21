@@ -92,11 +92,7 @@ export const INITIATIVE_CATEGORIES: InitiativeCategory[] = [
     slug: 'insumos-por-zona',
     title: 'Insumos requeridos por zona',
     description: 'Consulta qué insumos hacen falta en cada zona afectada.',
-    urls: [
-      'https://apoyovenezuela.com',
-      'https://ayudaparavenezuela.com',
-      'https://redh.avapre.com',
-    ],
+    urls: ['https://ayudaparavenezuela.com', 'https://redh.avapre.com'],
   },
   {
     slug: 'donaciones-y-pagos',

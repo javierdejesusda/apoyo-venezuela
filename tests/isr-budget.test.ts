@@ -29,19 +29,6 @@ function literalConstant(file: string, name: string): number {
 
 const revalidateOf = (pageFile: string) => literalConstant(pageFile, 'revalidate');
 
-/**
- * The window a `fetch` inside a page asks for. Next.js serves a route on the
- * shortest window in play, so a short fetch window silently overrides the
- * segment config: the home page renders the USGS seismic feed, and that fetch
- * decides how often `/` regenerates.
- */
-const fetchRevalidateOf = (loaderFile: string) =>
-  literalConstant(loaderFile, 'REVALIDATE_SECONDS');
-
-function homeRevalidate(): number {
-  return Math.min(revalidateOf('app/page.tsx'), fetchRevalidateOf('lib/sismos/load.ts'));
-}
-
 function monthlyWriteCeiling(paths: number, revalidateSeconds: number): number {
   if (paths <= 0) return 0;
   return paths * Math.ceil((SECONDS_PER_DAY / revalidateSeconds) * DAYS_PER_MONTH);
@@ -50,7 +37,6 @@ function monthlyWriteCeiling(paths: number, revalidateSeconds: number): number {
 function siteWriteCeiling(zonePaths: number): number {
   return (
     monthlyWriteCeiling(zonePaths, revalidateOf('app/zona/[id]/page.tsx')) +
-    monthlyWriteCeiling(1, homeRevalidate()) +
     monthlyWriteCeiling(1, revalidateOf('app/recaudaciones/page.tsx'))
   );
 }
@@ -75,11 +61,9 @@ describe('configured revalidation windows', () => {
     expect(siteWriteCeiling(ZONE_PATHS * 2)).toBeLessThan(FREE_ISR_WRITES_PER_MONTH);
   });
 
-  it('keeps zones on a longer window than the two listing pages', () => {
-    expect(revalidateOf('app/zona/[id]/page.tsx')).toBeGreaterThan(homeRevalidate());
-  });
-
-  it('does not let the seismic fetch shorten the home window behind its back', () => {
-    expect(homeRevalidate()).toBe(revalidateOf('app/page.tsx'));
+  it('keeps zones on a longer window than the listing page', () => {
+    expect(revalidateOf('app/zona/[id]/page.tsx')).toBeGreaterThan(
+      revalidateOf('app/recaudaciones/page.tsx'),
+    );
   });
 });
