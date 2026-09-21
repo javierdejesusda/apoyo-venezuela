@@ -1,34 +1,33 @@
 /**
  * National emergency short codes for Venezuela, by carrier.
  *
- * There is no single number that works on every network: the code depends on
- * the line the call is placed from. The retired /telefonos page carried this
+ * No single code reaches emergency services from every network: it depends on
+ * the line the call is placed from. The retired /telefonos page carried that
  * distinction, so the transition page has to carry it now, otherwise someone
  * on another carrier dials a dead line during an emergency.
  *
- * Source: lib/data/emergency-contacts.ts as it stood before the shutdown,
- * where the entry was confirmed against the 24-06-2026 earthquake coverage and
- * national emergency directories.
+ * Provenance matters more than usual here, because this page is the last one
+ * publishing these numbers and nobody is maintaining it. The pairing was
+ * confirmed on 24-06-2026 against
+ * https://laverdaddemonagas.com/2026/06/24/atencion-numeros-de-emergencia/
+ * and national emergency directories. Re-verify against a current source
+ * before changing any of it.
  *
- * This is a pure data module (no React imports) so it can be validated in
- * isolation and reused by both the page and its tests.
+ * Pure data with no imports, so it can be validated in isolation and reused by
+ * both the page and its tests.
  */
-import { telHref } from '@/lib/utils';
 
-/** One dialable emergency code and the network it is reachable from. */
-export interface EmergencyShortcode {
-  /** The code as a person dials it. */
-  code: string;
-  /** The carrier or line type the code works from. */
-  carrier: string;
-  /** Ready-to-use `tel:` target for the code. */
-  href: string;
-}
+/**
+ * The code the header shortcut dials. Declared on its own, and reused in the
+ * list below, so that reordering the list for presentation can never change
+ * which number a tap on the header places.
+ */
+export const PRIMARY_SHORTCODE = { code: '911', carrier: 'Movistar' } as const;
 
-/** The confirmed codes, ordered by how widely each network is used. */
-export const EMERGENCY_SHORTCODES: EmergencyShortcode[] = [
-  { code: '911', carrier: 'Movistar', href: telHref('911') },
-  { code: '112', carrier: 'Digitel', href: telHref('112') },
-  { code: '*1', carrier: 'Movilnet', href: telHref('*1') },
-  { code: '171', carrier: 'línea fija CANTV', href: telHref('171') },
-];
+/** Every confirmed code, ordered by how widely each network is used. */
+export const EMERGENCY_SHORTCODES = [
+  PRIMARY_SHORTCODE,
+  { code: '112', carrier: 'Digitel' },
+  { code: '*1', carrier: 'Movilnet' },
+  { code: '171', carrier: 'línea fija CANTV' },
+] as const;

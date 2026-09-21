@@ -30,7 +30,7 @@ import {
   INITIATIVE_LEAD,
 } from '@/lib/data/red-iniciativas';
 import { toneClasses, type Tone } from '@/lib/status';
-import { cn } from '@/lib/utils';
+import { cn, telHref } from '@/lib/utils';
 
 /**
  * Lucide icon per category slug; kept here so the data layer stays UI-free.
@@ -157,26 +157,24 @@ export default function HomePage() {
             Si necesitas ayuda o quieres apoyar, usa los canales de la red que se listan más
             abajo.
           </p>
-          <div className="space-y-2">
-            <p className="font-semibold text-ink">
-              Ante una emergencia que ponga en riesgo la vida, el número depende de tu
-              operadora:
-            </p>
-            <ul className="flex flex-wrap gap-2">
-              {EMERGENCY_SHORTCODES.map((entry) => (
-                <li key={entry.code}>
-                  <a
-                    href={entry.href}
-                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-danger/30 bg-surface px-3 py-2 transition-colors hover:border-danger/60"
-                  >
-                    <Phone className="h-4 w-4 shrink-0 text-danger" aria-hidden />
-                    <span className="font-semibold text-danger">{entry.code}</span>
-                    <span className="text-ink-soft">{entry.carrier}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <p className="font-semibold text-ink">
+            Ante una emergencia que ponga en riesgo la vida, el número depende de tu
+            operadora:
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {EMERGENCY_SHORTCODES.map((entry) => (
+              <li key={entry.code}>
+                <a
+                  href={telHref(entry.code)}
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-danger/30 bg-surface px-3 py-2 text-sm transition-colors hover:border-danger/60"
+                >
+                  <Phone className="h-4 w-4 shrink-0 text-danger" aria-hidden />
+                  <span className="font-semibold text-danger">{entry.code}</span>
+                  <span className="text-ink-soft">{entry.carrier}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </aside>
 

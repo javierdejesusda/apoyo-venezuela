@@ -10,6 +10,7 @@ import {
   INITIATIVE_CATEGORIES,
   INITIATIVE_LEAD,
 } from '@/lib/data/red-iniciativas';
+import { telHref } from '@/lib/utils';
 
 afterEach(() => {
   cleanup();
@@ -83,7 +84,7 @@ describe('home page rendering', () => {
     for (const entry of EMERGENCY_SHORTCODES) {
       const matches = screen
         .getAllByRole('link')
-        .filter((link) => link.getAttribute('href') === entry.href);
+        .filter((link) => link.getAttribute('href') === telHref(entry.code));
       expect(matches.length).toBe(1);
     }
   });

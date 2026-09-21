@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { EMERGENCY_SHORTCODES } from '@/lib/data/emergency-shortcodes';
+import { EMERGENCY_SHORTCODES, PRIMARY_SHORTCODE } from '@/lib/data/emergency-shortcodes';
 
 /**
  * The national emergency number in Venezuela depends on the caller's carrier,
@@ -27,9 +27,12 @@ describe('emergency shortcodes', () => {
     ]);
   });
 
-  it('gives every code a dialable tel: target', () => {
-    for (const entry of EMERGENCY_SHORTCODES) {
-      expect(entry.href).toBe(`tel:${entry.code}`);
-    }
+  /**
+   * List order is a display decision. Deriving the header shortcut from it
+   * would mean a presentation change silently altered which number a tap
+   * places, so the primary is declared on its own and reused in the list.
+   */
+  it('declares the primary code independently of the list order', () => {
+    expect(EMERGENCY_SHORTCODES).toContain(PRIMARY_SHORTCODE);
   });
 });
