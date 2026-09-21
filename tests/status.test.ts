@@ -3,14 +3,12 @@ import { describe, expect, it } from 'vitest';
 import {
   TONE_HEX,
   categoryMeta,
-  contactCategoryMeta,
   needStatusMeta,
   statusMeta,
   toneClasses,
   urgencyMeta,
 } from '@/lib/status';
 import {
-  CONTACT_CATEGORIES,
   EMERGENCY_STATUSES,
   NEED_CATEGORIES,
   NEED_STATUSES,
@@ -51,11 +49,10 @@ describe('status metadata', () => {
     expect(statusMeta['dano_parcial'].label).toBe('Daño parcial');
   });
 
-  it('covers every urgency, need status, category and contact category', () => {
+  it('covers every urgency, need status and category', () => {
     for (const u of URGENCIES) expect(urgencyMeta[u].label.length).toBeGreaterThan(0);
     for (const n of NEED_STATUSES) expect(needStatusMeta[n].label.length).toBeGreaterThan(0);
     for (const c of NEED_CATEGORIES) expect(categoryMeta[c].label.length).toBeGreaterThan(0);
-    for (const c of CONTACT_CATEGORIES) expect(contactCategoryMeta[c].label.length).toBeGreaterThan(0);
   });
 });
 

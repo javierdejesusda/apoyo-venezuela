@@ -16,19 +16,14 @@ export default function NotFound() {
           <p className="text-5xl font-semibold text-ink-faint">404</p>
           <h1 className="text-xl font-semibold text-ink">Página no encontrada</h1>
           <p className="text-sm text-ink-soft">
-            La página que buscas no existe o fue movida. Usa los enlaces de
-            abajo para encontrar lo que necesitas.
+            Apoyo Venezuela dejó de operar y esta dirección ya no existe. En
+            el inicio está la red de iniciativas que continúa la coordinación.
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 w-full sm:flex-row sm:justify-center">
-          <Link href="/" className={buttonClasses('primary', 'md')}>
-            Ir al inicio
-          </Link>
-          <Link href="/telefonos" className={buttonClasses('outline', 'md')}>
-            Teléfonos de emergencia
-          </Link>
-        </div>
+        <Link href="/" className={buttonClasses('primary', 'md')}>
+          Ir al inicio
+        </Link>
       </div>
     </div>
   );

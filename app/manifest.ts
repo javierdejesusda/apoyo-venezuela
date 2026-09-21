@@ -6,11 +6,10 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Apoyo Venezuela',
     short_name: 'Apoyo VE',
     description:
-      'Coordina ayuda tras el terremoto en Venezuela: reporta zonas, necesidades y consulta teléfonos de emergencia.',
+      'Apoyo Venezuela dejó de operar. La coordinación de ayuda continúa en la red de iniciativas.',
     start_url: '/',
     scope: '/',
-    display: 'standalone',
-    orientation: 'portrait',
+    display: 'browser',
     lang: 'es',
     dir: 'ltr',
     background_color: '#0a0c11',

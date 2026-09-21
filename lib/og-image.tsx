@@ -80,7 +80,7 @@ export function renderOgImage(): ImageResponse {
             <Venezuela size={60} fill="#ffffff" />
           </div>
           <div style={{ display: 'flex', fontSize: 26, letterSpacing: 6, color: '#aeb8cd', fontWeight: 600 }}>
-            EMERGENCIA · SISMO 24 JUN 2026
+            RED DE INICIATIVAS · SISMO JUN 2026
           </div>
         </div>
 
@@ -100,7 +100,7 @@ export function renderOgImage(): ImageResponse {
             Apoyo Venezuela
           </div>
           <div style={{ display: 'flex', fontSize: 40, color: '#aeb8cd', marginTop: 20 }}>
-            Coordina la ayuda tras el terremoto, zona por zona
+            Dejó de operar. La coordinación continúa en Red Quipu
           </div>
         </div>
 

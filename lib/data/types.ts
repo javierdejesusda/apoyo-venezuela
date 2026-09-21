@@ -217,36 +217,6 @@ export interface LocationFilters {
 /** Default number of locations per page for the bounded home list. */
 export const PAGE_SIZE = 20;
 
-/** Category of an emergency phone contact (matches research output). */
-export const CONTACT_CATEGORIES = [
-  'hotline',
-  'proteccion_civil',
-  'bomberos',
-  'cruz_roja',
-  'policia',
-  'hospital',
-  'medico',
-  'rescate',
-  'apoyo_psicologico',
-  'otro',
-] as const;
-export type ContactCategory = (typeof CONTACT_CATEGORIES)[number];
-
-export interface EmergencyContact {
-  organization: string;
-  category: ContactCategory;
-  phones: string[];
-  verified: boolean;
-  notes?: string;
-  source?: string;
-}
-
-export interface StateContacts {
-  state: string;
-  areaCode?: string;
-  contacts: EmergencyContact[];
-}
-
 /** A community-submitted GoFundMe fundraiser campaign. */
 export interface Fundraiser {
   id: string;

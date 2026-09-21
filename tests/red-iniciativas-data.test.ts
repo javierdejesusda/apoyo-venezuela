@@ -43,6 +43,11 @@ describe('red de iniciativas data', () => {
     }
   });
 
+  it('never links back to this site, which no longer serves data', () => {
+    const allUrls = INITIATIVE_CATEGORIES.flatMap((c) => c.urls);
+    expect(allUrls.some((url) => /apoyovenezuela\.com/i.test(url))).toBe(false);
+  });
+
   it('does not repeat a link within the same category', () => {
     for (const category of INITIATIVE_CATEGORIES) {
       expect(new Set(category.urls).size).toBe(category.urls.length);
